@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm --prefix frontend ci
+
+      - name: Run tests with coverage
+        run: npm run test:cov
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build backend Docker image
+        run: docker build -f backend/Dockerfile -t jansamvaad-backend:latest .
+
+      - name: Publish coverage badge to summary
+        run: |
+          COVERAGE=$(node -e "const s=require('./coverage/coverage-summary.json'); console.log(s.total.lines.pct)")
+          echo "![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Optional VPS deploy over SSH
+        if: ${{ secrets.DEPLOY_HOST && secrets.DEPLOY_USER && secrets.DEPLOY_KEY }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/jansamvaad-resolveos
+            git pull
+            docker compose up -d --build

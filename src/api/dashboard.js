@@ -1,5 +1,7 @@
 const express = require('express');
 const pool = require('../db');
+const authenticateToken = require('../middleware/authenticateToken');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ function maskPhone(phone) {
   return `${prefix}******${suffix}`;
 }
 
-router.get('/api/tickets', async (req, res) => {
+router.get('/api/tickets', authenticateToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT
@@ -50,12 +52,12 @@ router.get('/api/tickets', async (req, res) => {
 
     res.json(tickets);
   } catch (error) {
-    console.error('Failed to fetch tickets', error);
+    (req.log || logger).error({ err: error }, 'Failed to fetch tickets');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-router.get('/api/stats', async (req, res) => {
+router.get('/api/stats', authenticateToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT
@@ -80,7 +82,7 @@ router.get('/api/stats', async (req, res) => {
       slaHitRate
     });
   } catch (error) {
-    console.error('Failed to fetch dashboard stats', error);
+    (req.log || logger).error({ err: error }, 'Failed to fetch dashboard stats');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

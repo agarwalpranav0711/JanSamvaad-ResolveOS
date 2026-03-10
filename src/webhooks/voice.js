@@ -1,16 +1,44 @@
 const express = require('express');
-const { twiml: { VoiceResponse } } = require('twilio');
+const twilio = require('twilio');
+const { VoiceResponse } = twilio.twiml;
 const pool = require('../db');
 const { isDndNumber } = require('../../lib/dndScrub');
 const { extractIntent } = require('../services/llm');
 const { createTicket } = require('../crm/ticket');
+const logger = require('../utils/logger');
 
 const router = express.Router();
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null;
 
-async function logConsent(phone, consented) {
+function validateTwilioSignature(req, res, next) {
+  if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+    next();
+    return;
+  }
+
+  if (!twilioAuthToken) {
+    res.status(500).json({
+      error: 'Server misconfiguration: TWILIO_AUTH_TOKEN not set'
+    });
+    return;
+  }
+
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  const isValid = twilio.validateExpressRequest(req, twilioAuthToken, { url });
+  if (!isValid) {
+    res.status(403).send('Forbidden');
+    return;
+  }
+
+  next();
+}
+
+router.use(['/voice', '/consent', '/lang', '/record', '/transcribe'], validateTwilioSignature);
+
+async function logConsent(phone, consented, requestLogger) {
   try {
     await pool.query(
       `INSERT INTO call_consents (phone, consented, timestamp)
@@ -18,7 +46,7 @@ async function logConsent(phone, consented) {
       [phone, consented]
     );
   } catch (error) {
-    console.error('Failed to log consent', error);
+    (requestLogger || logger).error({ err: error, phone }, 'Failed to log consent');
   }
 }
 
@@ -62,7 +90,7 @@ router.post('/consent', async (req, res) => {
   const optedOut = digit === '2' || speechResult === 'STOP';
   const consented = digit === '1' && !optedOut;
 
-  await logConsent(phone, consented);
+  await logConsent(phone, consented, req.log);
 
   if (!consented) {
     response.say('Thank you, goodbye.');
@@ -142,7 +170,7 @@ router.post('/transcribe', async (req, res) => {
       severity: severityMap[String(grievanceIntent.urgency || '').toLowerCase()] || 'Medium'
     };
     const ticket = await createTicket(phone, ticketPayload);
-    console.log('Ticket created from transcription:', ticket.ref);
+    (req.log || logger).info({ ticketRef: ticket.ref }, 'Ticket created from transcription');
 
     if (twilioClient && phone) {
       await twilioClient.messages.create({
@@ -152,7 +180,7 @@ router.post('/transcribe', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Transcription callback failed', error);
+    (req.log || logger).error({ err: error }, 'Transcription callback failed');
   }
 
   res.status(200).send('');

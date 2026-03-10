@@ -1,6 +1,7 @@
 const { GoogleGenAI } = require('@google/genai');
+const logger = require('../utils/logger');
 
-const MODEL_NAME = 'gemini-1.5-flash';
+const MODEL_NAME = 'gemini-2.5-flash';
 
 async function transcribeAudio(recordingUrl) {
   // Twilio transcription is handled via /transcribe callback
@@ -55,7 +56,7 @@ ${transcript}
 
     return JSON.parse(cleaned);
   } catch (error) {
-    console.error('Gemini extraction failed', error);
+    logger.error({ err: error }, 'Gemini extraction failed');
     return fallbackIntent(transcript);
   }
 }

@@ -2,6 +2,8 @@ const express = require('express');
 const crypto = require('crypto');
 const twilio = require('twilio');
 const pool = require('../db');
+const authenticateToken = require('../middleware/authenticateToken');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ function buildEvidenceUploadUrl(hash) {
   return `${evidenceBaseUrl.replace(/\/$/, '')}/evidence/${hash}`;
 }
 
-router.post('/api/evidence/upload', async (req, res) => {
+router.post('/api/evidence/upload', authenticateToken, async (req, res) => {
   const ticketId = Number(req.body.ticket_id);
 
   if (!Number.isInteger(ticketId) || ticketId <= 0) {
@@ -58,12 +60,12 @@ router.post('/api/evidence/upload', async (req, res) => {
       ticket: rows[0]
     });
   } catch (error) {
-    console.error('Failed to generate evidence upload URL', error);
+    (req.log || logger).error({ err: error, ticketId }, 'Failed to generate evidence upload URL');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-router.post('/api/tickets/:id/resolve', async (req, res) => {
+router.post('/api/tickets/:id/resolve', authenticateToken, async (req, res) => {
   const ticketId = Number(req.params.id);
 
   if (!Number.isInteger(ticketId) || ticketId <= 0) {
@@ -150,7 +152,7 @@ router.post('/api/tickets/:id/resolve', async (req, res) => {
       await dbClient.query('ROLLBACK');
     }
 
-    console.error('Failed to resolve ticket', error);
+    (req.log || logger).error({ err: error, ticketId }, 'Failed to resolve ticket');
     res.status(500).json({ error: 'Internal server error' });
   } finally {
     dbClient.release();

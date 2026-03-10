@@ -38,6 +38,13 @@ services:
       TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      OPERATOR_USERNAME: ${OPERATOR_USERNAME}
+      OPERATOR_PASSWORD: ${OPERATOR_PASSWORD}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+      APP_BASE_URL: ${APP_BASE_URL}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
     depends_on:
       postgres:
         condition: service_healthy

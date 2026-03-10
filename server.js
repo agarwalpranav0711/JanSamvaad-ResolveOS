@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const crypto = require('crypto');
 const cors = require('cors');
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
@@ -7,6 +8,7 @@ const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 const pool = require('./src/db');
 const { setIo } = require('./src/crm/ticket');
+const logger = require('./src/utils/logger');
 
 dotenv.config();
 
@@ -23,12 +25,20 @@ app.set('io', io);
 setIo(io);
 
 const voiceWebhookRouter = require('./src/webhooks/voice');
+const authRouter = require('./src/api/auth');
 const dashboardRouter = require('./src/api/dashboard');
 const evidenceRouter = require('./src/api/evidence');
 
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+  req.log = logger.child({ requestId });
+  next();
+});
 
 app.get('/health', (req, res) => {
   res.json({
@@ -39,6 +49,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/', voiceWebhookRouter);
+app.use('/', authRouter);
 app.use('/', dashboardRouter);
 app.use('/', evidenceRouter);
 
@@ -89,7 +100,7 @@ async function runSlaBreachAlerts() {
       });
     }
   } catch (error) {
-    console.error('SLA breach cron failed', error);
+    logger.error({ err: error }, 'SLA breach cron failed');
   }
 }
 
@@ -102,7 +113,7 @@ if (process.env.ENABLE_SLA_CRON !== 'false' && process.env.NODE_ENV !== 'test') 
 
 function startServer() {
   return server.listen(PORT, () => {
-    console.log(`JanSamvaad ResolveOS server listening on port ${PORT}`);
+    logger.info({ port: PORT }, 'JanSamvaad ResolveOS server listening');
   });
 }
 
