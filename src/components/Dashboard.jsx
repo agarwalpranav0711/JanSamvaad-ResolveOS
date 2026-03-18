@@ -95,11 +95,21 @@ function formatTrend(value) {
 }
 
 function displayCategory(category) {
-  const raw = String(category || '').trim();
-  if (!raw || raw.toLowerCase() === 'other') {
-    return 'Unclassified';
+  const raw = String(category || '').trim().toLowerCase();
+  if (!raw || raw === 'unclassified' || raw === 'other' || raw === 'unknown') {
+    return 'General Complaint';
   }
-  return raw;
+  if (raw.includes('road')) return 'Road Damage';
+  if (raw.includes('pothole')) return 'Pothole';
+  if (raw.includes('water')) return 'Water Leakage';
+  if (raw.includes('electricity') || raw.includes('power')) return 'Electricity Outage';
+  if (raw.includes('sanitation') || raw.includes('garbage')) return 'Garbage Collection';
+  if (raw.includes('drainage')) return 'Drainage Blocked';
+  if (raw.includes('street light') || raw.includes('streetlight')) return 'Street Light';
+  if (raw.includes('noise')) return 'Noise Complaint';
+  if (raw.includes('sewage')) return 'Sewage Overflow';
+  if (raw.includes('park')) return 'Park Maintenance';
+  return 'General Complaint';
 }
 
 function displayWard(ticket) {
@@ -110,6 +120,151 @@ function displayWard(ticket) {
     return `Ward ${ticket.ward_id}`;
   }
   return '—';
+}
+
+function displaySummary(ticket) {
+  const raw = String(ticket?.summary || ticket?.ai_summary || '').trim();
+  if (!raw) {
+    return 'No summary available';
+  }
+  return raw;
+}
+
+function getDepartmentMeta(category) {
+  const value = displayCategory(category).toLowerCase();
+  if (value.includes('road') || value.includes('pothole') || value.includes('street')) {
+    return { label: '🛣️ Roads Dept', badgeClass: 'bg-blue-500/20 text-blue-300 border border-blue-500/50' };
+  }
+  if (value.includes('water') || value.includes('drainage')) {
+    return { label: '💧 Water Dept', badgeClass: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' };
+  }
+  if (value.includes('electricity') || value.includes('power')) {
+    return { label: '⚡ Electricity Dept', badgeClass: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50' };
+  }
+  if (value.includes('sanitation') || value.includes('garbage') || value.includes('waste')) {
+    return { label: '🗑️ Sanitation Dept', badgeClass: 'bg-green-500/20 text-green-300 border border-green-500/50' };
+  }
+  return { label: '📋 General Dept', badgeClass: 'bg-slate-500/20 text-slate-300 border border-slate-500/50' };
+}
+
+function seededWardFromTicket(ticket) {
+  const seed = `${ticket?.id || ''}${ticket?.ref || ''}`;
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) % 997;
+  }
+  return (Math.abs(hash) % 10) + 1;
+}
+
+function normalizeWardId(value, ticket) {
+  if (value === null || value === undefined || value === '—') {
+    return seededWardFromTicket(ticket);
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return seededWardFromTicket(ticket);
+  }
+  return Math.floor(parsed);
+}
+
+function normalizeTicket(ticket) {
+  const wardId = normalizeWardId(ticket?.ward_id, ticket);
+  return {
+    ...ticket,
+    ward_id: wardId,
+    severity: normalizeSeverity(ticket?.severity),
+    status: normalizeStatus(ticket?.status),
+    phone: maskPhone(ticket?.phone),
+    created_at: ticket?.created_at || new Date().toISOString(),
+    summary: ticket?.summary || ticket?.ai_summary || ''
+  };
+}
+
+function buildDemoTicket({
+  id,
+  ref,
+  category,
+  ward_id,
+  severity,
+  status,
+  hoursAgo,
+  phone,
+  summary,
+  resolutionHours
+}) {
+  const createdAt = new Date(Date.now() - hoursAgo * 3600000);
+  const slaWindow = severity === 'CRITICAL' ? 24 : severity === 'HIGH' ? 48 : severity === 'MEDIUM' ? 72 : 96;
+  const resolvedAt = status === 'resolved' && resolutionHours
+    ? new Date(createdAt.getTime() + resolutionHours * 3600000)
+    : null;
+  return normalizeTicket({
+    id,
+    ref,
+    category,
+    ward_id,
+    severity,
+    status,
+    phone,
+    summary,
+    created_at: createdAt.toISOString(),
+    resolved_at: resolvedAt ? resolvedAt.toISOString() : null,
+    sla_deadline: new Date(createdAt.getTime() + slaWindow * 3600000).toISOString(),
+    evidence_url: status === 'resolved' ? `${API}/evidence/${ref.toLowerCase()}` : null
+  });
+}
+
+const DEMO_TICKETS = [
+  buildDemoTicket({ id: 1, ref: 'GRV-A1B2C3', category: 'Pothole', ward_id: 3, severity: 'HIGH', status: 'open', hoursAgo: 6, phone: '+919812345601', summary: 'Resident reports large pothole near Ward 3 market causing vehicle tire damage.' }),
+  buildDemoTicket({ id: 2, ref: 'GRV-D4E5F6', category: 'Water Leakage', ward_id: 1, severity: 'CRITICAL', status: 'open', hoursAgo: 4, phone: '+919812345602', summary: 'Major pipeline leak near school in Ward 1 flooding footpath and blocking traffic.' }),
+  buildDemoTicket({ id: 3, ref: 'GRV-G7H8I9', category: 'Street Light', ward_id: 5, severity: 'MEDIUM', status: 'in_progress', hoursAgo: 18, phone: '+919812345603', summary: 'Three street lights not working on Ward 5 main lane creating safety concern at night.' }),
+  buildDemoTicket({ id: 4, ref: 'GRV-J1K2L3', category: 'Garbage Collection', ward_id: 2, severity: 'HIGH', status: 'open', hoursAgo: 12, phone: '+919812345604', summary: 'Garbage pileup outside apartment gate in Ward 2 attracting stray animals.' }),
+  buildDemoTicket({ id: 5, ref: 'GRV-M4N5O6', category: 'Electricity Outage', ward_id: 4, severity: 'CRITICAL', status: 'in_progress', hoursAgo: 9, phone: '+919812345605', summary: 'Frequent power outage in Ward 4 block B affecting small shops and clinics.' }),
+  buildDemoTicket({ id: 6, ref: 'GRV-P7Q8R9', category: 'Drainage Blocked', ward_id: 6, severity: 'HIGH', status: 'open', hoursAgo: 20, phone: '+919812345606', summary: 'Drain near Ward 6 bus stand is blocked and overflow starts after light rain.' }),
+  buildDemoTicket({ id: 7, ref: 'GRV-S1T2U3', category: 'Road Damage', ward_id: 3, severity: 'MEDIUM', status: 'resolved', hoursAgo: 34, resolutionHours: 4, phone: '+919812345607', summary: 'Road surface cracked near Ward 3 hospital entry; patchwork requested by residents.' }),
+  buildDemoTicket({ id: 8, ref: 'GRV-V4W5X6', category: 'Noise Complaint', ward_id: 7, severity: 'LOW', status: 'open', hoursAgo: 5, phone: '+919812345608', summary: 'Late-night loudspeaker noise near Ward 7 temple disturbing senior citizens.' }),
+  buildDemoTicket({ id: 9, ref: 'GRV-Y7Z8A9', category: 'Sewage Overflow', ward_id: 2, severity: 'HIGH', status: 'in_progress', hoursAgo: 16, phone: '+919812345609', summary: 'Sewage overflow reported in Ward 2 residential lane causing foul smell and hygiene risk.' }),
+  buildDemoTicket({ id: 10, ref: 'GRV-B1C2D3', category: 'Park Maintenance', ward_id: 8, severity: 'LOW', status: 'resolved', hoursAgo: 27, resolutionHours: 3, phone: '+919812345610', summary: 'Broken swings and overgrown grass in Ward 8 children park fixed after complaint.' }),
+  buildDemoTicket({ id: 11, ref: 'GRV-E4F5G6', category: 'Pothole', ward_id: 1, severity: 'MEDIUM', status: 'open', hoursAgo: 30, phone: '+919812345611', summary: 'Medium pothole near Ward 1 dairy booth causing two-wheeler skidding incidents.' }),
+  buildDemoTicket({ id: 12, ref: 'GRV-H7I8J9', category: 'Water Leakage', ward_id: 4, severity: 'HIGH', status: 'resolved', hoursAgo: 36, resolutionHours: 5, phone: '+919812345612', summary: 'Water leakage from overhead valve in Ward 4 repaired by pipeline team.' }),
+  buildDemoTicket({ id: 13, ref: 'GRV-K1L2M3', category: 'Street Light', ward_id: 5, severity: 'LOW', status: 'in_progress', hoursAgo: 22, phone: '+919812345613', summary: 'Single street light flickering in Ward 5 internal road; maintenance team assigned.' }),
+  buildDemoTicket({ id: 14, ref: 'GRV-N4O5P6', category: 'Garbage Collection', ward_id: 6, severity: 'MEDIUM', status: 'open', hoursAgo: 14, phone: '+919812345614', summary: 'Missed garbage pickup for two days in Ward 6 apartment cluster.' }),
+  buildDemoTicket({ id: 15, ref: 'GRV-Q7R8S9', category: 'Electricity Outage', ward_id: 2, severity: 'CRITICAL', status: 'open', hoursAgo: 3, phone: '+919812345615', summary: 'Transformer fault in Ward 2 causing complete outage for multiple blocks.' }),
+  buildDemoTicket({ id: 16, ref: 'GRV-T1U2V3', category: 'Drainage Blocked', ward_id: 7, severity: 'HIGH', status: 'resolved', hoursAgo: 32, resolutionHours: 6, phone: '+919812345616', summary: 'Ward 7 drainage line desilted and waterlogging cleared within same day.' }),
+  buildDemoTicket({ id: 17, ref: 'GRV-W4X5Y6', category: 'Road Damage', ward_id: 8, severity: 'MEDIUM', status: 'in_progress', hoursAgo: 26, phone: '+919812345617', summary: 'Road edge collapse near Ward 8 flyover service lane under repair planning.' }),
+  buildDemoTicket({ id: 18, ref: 'GRV-Z7A8B9', category: 'Noise Complaint', ward_id: 3, severity: 'LOW', status: 'open', hoursAgo: 8, phone: '+919812345618', summary: 'Construction noise before permitted hours reported in Ward 3 residential pocket.' }),
+  buildDemoTicket({ id: 19, ref: 'GRV-C1D2E3', category: 'Sewage Overflow', ward_id: 1, severity: 'MEDIUM', status: 'in_progress', hoursAgo: 19, phone: '+919812345619', summary: 'Intermittent sewage overflow near Ward 1 metro gate under field inspection.' }),
+  buildDemoTicket({ id: 20, ref: 'GRV-F4G5H6', category: 'Park Maintenance', ward_id: 5, severity: 'LOW', status: 'resolved', hoursAgo: 24, resolutionHours: 2, phone: '+919812345620', summary: 'Ward 5 park lighting and benches repaired after repeated resident complaints.' }),
+  buildDemoTicket({ id: 21, ref: 'GRV-I7J8K9', category: 'Pothole', ward_id: 4, severity: 'HIGH', status: 'in_progress', hoursAgo: 10, phone: '+919812345621', summary: 'Deep pothole at Ward 4 junction marked and temporary filling started.' }),
+  buildDemoTicket({ id: 22, ref: 'GRV-L1M2N3', category: 'Water Leakage', ward_id: 6, severity: 'MEDIUM', status: 'open', hoursAgo: 11, phone: '+919812345622', summary: 'Slow but continuous water leakage in Ward 6 lane affecting daily supply pressure.' }),
+  buildDemoTicket({ id: 23, ref: 'GRV-O4P5Q6', category: 'Street Light', ward_id: 2, severity: 'MEDIUM', status: 'resolved', hoursAgo: 28, resolutionHours: 7, phone: '+919812345623', summary: 'Street light controller in Ward 2 replaced and corridor lighting restored.' }),
+  buildDemoTicket({ id: 24, ref: 'GRV-R7S8T9', category: 'Garbage Collection', ward_id: 8, severity: 'MEDIUM', status: 'resolved', hoursAgo: 40, resolutionHours: 8, phone: '+919812345624', summary: 'Bulk waste cleared from Ward 8 market lane with follow-up collection schedule set.' }),
+  buildDemoTicket({ id: 25, ref: 'GRV-U1V2W3', category: 'Electricity Outage', ward_id: 7, severity: 'HIGH', status: 'in_progress', hoursAgo: 7, phone: '+919812345625', summary: 'Localized power interruption in Ward 7 due to feeder tripping under restoration.' })
+];
+
+function decodeJwtUsername(token) {
+  try {
+    const payloadPart = String(token || '').split('.')[1];
+    if (!payloadPart) {
+      return 'Operator';
+    }
+    const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = `${normalized}${'='.repeat((4 - (normalized.length % 4)) % 4)}`;
+    const payload = JSON.parse(atob(padded));
+    return payload?.username || 'Operator';
+  } catch (error) {
+    return 'Operator';
+  }
+}
+
+function getInitials(name) {
+  const tokens = String(name || 'Operator').trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) {
+    return 'OP';
+  }
+  if (tokens.length === 1) {
+    return tokens[0].slice(0, 2).toUpperCase();
+  }
+  return `${tokens[0][0] || ''}${tokens[1][0] || ''}`.toUpperCase();
 }
 
 function useAnimatedNumber(value, duration = 800) {
@@ -307,12 +462,24 @@ const TicketRow = memo(function TicketRow({
   const severity = normalizeSeverity(ticket.severity);
   const status = normalizeStatus(ticket.status);
   const countdown = formatCountdown(ticket.sla_deadline, nowMs);
+  const department = getDepartmentMeta(ticket.category);
   const handleResolveClick = useCallback(() => {
     onResolve(ticket.id, 'user');
   }, [onResolve, ticket.id]);
+  const handleResolveButtonClick = useCallback((event) => {
+    event.stopPropagation();
+    handleResolveClick();
+  }, [handleResolveClick]);
   const handleToggleDetails = useCallback(() => {
     onToggleExpand(ticket.id);
   }, [onToggleExpand, ticket.id]);
+  const handleToggleDetailsClick = useCallback((event) => {
+    event.stopPropagation();
+    handleToggleDetails();
+  }, [handleToggleDetails]);
+  const handleEvidenceClick = useCallback((event) => {
+    event.stopPropagation();
+  }, []);
   const handleRowKeyDown = useCallback((event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -327,6 +494,9 @@ const TicketRow = memo(function TicketRow({
       onResolve(ticket.id, 'user');
     }
   }, [onCollapse, onResolve, onToggleExpand, ticket.id]);
+  const handleRowClick = useCallback(() => {
+    onToggleExpand(ticket.id);
+  }, [onToggleExpand, ticket.id]);
 
   return (
     <>
@@ -334,6 +504,7 @@ const TicketRow = memo(function TicketRow({
         role="row"
         tabIndex={0}
         onKeyDown={handleRowKeyDown}
+        onClick={handleRowClick}
         aria-label={`Ticket row ${ticket.ref}`}
         className={`border-b border-white/5 transition-all duration-200 ease-in-out hover:bg-slate-800/40 ${
           isBreached || countdown.urgent ? 'animate-pulse border-l-2 border-l-red-500/70' : ''
@@ -341,7 +512,14 @@ const TicketRow = memo(function TicketRow({
         style={isNew ? { animation: 'rowSlide 300ms ease-out, rowFlash 2s ease-in-out' } : undefined}
       >
         <td role="gridcell" className="px-3 py-3 font-mono text-xs text-cyan-200">{ticket.ref}</td>
-        <td role="gridcell" className="px-3 py-3 text-sm font-semibold text-slate-100">{displayCategory(ticket.category)}</td>
+        <td role="gridcell" className="px-3 py-3 text-sm font-semibold text-slate-100">
+          <div className="flex items-center gap-2">
+            <span>{displayCategory(ticket.category)}</span>
+            <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${department.badgeClass}`}>
+              {department.label}
+            </span>
+          </div>
+        </td>
         <td role="gridcell" className="hidden px-3 py-3 text-sm text-slate-300 lg:table-cell">{displayWard(ticket)}</td>
         <td role="gridcell" className="px-3 py-3">
           <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${SEVERITY_CLASS_MAP[severity]}`}>
@@ -367,6 +545,7 @@ const TicketRow = memo(function TicketRow({
               href={ticket.evidence_url}
               target="_blank"
               rel="noreferrer"
+              onClick={handleEvidenceClick}
               aria-label={`Open evidence for ticket ${ticket.ref}`}
               className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/40 text-cyan-300 transition-all duration-200 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
               title="Open evidence"
@@ -381,7 +560,7 @@ const TicketRow = memo(function TicketRow({
           <div className="flex flex-col gap-1 md:flex-row">
             <button
               type="button"
-              onClick={handleResolveClick}
+              onClick={handleResolveButtonClick}
               disabled={isResolving || status === 'resolved'}
               aria-label={`Resolve ticket ${ticket.ref}`}
               className="rounded-md border border-emerald-500/40 bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 shadow-sm transition-all duration-200 hover:bg-emerald-500/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -390,7 +569,7 @@ const TicketRow = memo(function TicketRow({
             </button>
             <button
               type="button"
-              onClick={handleToggleDetails}
+              onClick={handleToggleDetailsClick}
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} details for ticket ${ticket.ref}`}
               className="rounded-md border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 lg:hidden"
             >
@@ -400,12 +579,13 @@ const TicketRow = memo(function TicketRow({
         </td>
       </tr>
       {isExpanded ? (
-        <tr role="row" className="bg-slate-900/40 lg:hidden">
+        <tr role="row" className="bg-slate-900/40">
           <td role="gridcell" colSpan={9} className="px-3 py-2 text-xs text-slate-300">
             <div className="flex flex-wrap gap-4">
               <span><span className="text-slate-500">Ward:</span> {displayWard(ticket)}</span>
               <span><span className="text-slate-500">Phone:</span> {ticket.phone || maskPhone('')}</span>
             </div>
+            <p className="mt-2 text-xs italic text-slate-400">AI Summary: {displaySummary(ticket)}</p>
           </td>
         </tr>
       ) : null}
@@ -424,6 +604,7 @@ const MobileTicketCard = memo(function MobileTicketCard({
   const severity = normalizeSeverity(ticket.severity);
   const status = normalizeStatus(ticket.status);
   const countdown = formatCountdown(ticket.sla_deadline, nowMs);
+  const department = getDepartmentMeta(ticket.category);
   const handleResolveClick = useCallback(() => {
     onResolve(ticket.id, 'user');
   }, [onResolve, ticket.id]);
@@ -441,7 +622,13 @@ const MobileTicketCard = memo(function MobileTicketCard({
           {severity}
         </span>
       </div>
-      <p className="text-sm font-semibold text-slate-100">{displayCategory(ticket.category)}</p>
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-semibold text-slate-100">{displayCategory(ticket.category)}</p>
+        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${department.badgeClass}`}>
+          {department.label}
+        </span>
+      </div>
+      <p className="mt-1 text-xs italic text-slate-400">AI Summary: {displaySummary(ticket)}</p>
       <p className="mt-1 text-xs text-slate-400">Ward: {displayWard(ticket)}</p>
       <div className="mt-3 flex items-center justify-between">
         <p className={`font-mono text-xs ${countdown.tone}`}>{countdown.label}</p>
@@ -480,56 +667,7 @@ const MobileTicketCard = memo(function MobileTicketCard({
 });
 
 export default function Dashboard() {
-  const [tickets, setTickets] = useState([
-    {
-      id: 101,
-      ref: 'GRV-A8D2K9',
-      category: 'Pothole',
-      ward_id: 1,
-      severity: 'HIGH',
-      phone: maskPhone('+919812349921'),
-      status: 'open',
-      created_at: new Date(Date.now() - 20 * 60000).toISOString(),
-      sla_deadline: new Date(Date.now() + 90 * 60000).toISOString(),
-      evidence_url: null
-    },
-    {
-      id: 102,
-      ref: 'GRV-M4Q7L1',
-      category: 'Water',
-      ward_id: 3,
-      severity: 'MEDIUM',
-      phone: maskPhone('+917600118245'),
-      status: 'in_progress',
-      created_at: new Date(Date.now() - 70 * 60000).toISOString(),
-      sla_deadline: new Date(Date.now() + 4 * 3600000).toISOString(),
-      evidence_url: null
-    },
-    {
-      id: 103,
-      ref: 'GRV-T9N3B5',
-      category: 'Electricity',
-      ward_id: 5,
-      severity: 'CRITICAL',
-      phone: maskPhone('+919990332211'),
-      status: 'open',
-      created_at: new Date(Date.now() - 40 * 60000).toISOString(),
-      sla_deadline: new Date(Date.now() + 18 * 60000).toISOString(),
-      evidence_url: null
-    },
-    {
-      id: 104,
-      ref: 'GRV-R2H6C8',
-      category: 'Sanitation',
-      ward_id: 2,
-      severity: 'LOW',
-      phone: maskPhone('+918287654310'),
-      status: 'resolved',
-      created_at: new Date(Date.now() - 8 * 3600000).toISOString(),
-      sla_deadline: new Date(Date.now() - 2 * 3600000).toISOString(),
-      evidence_url: `${API}/evidence/demo-js-r2h6c8`
-    }
-  ]);
+  const [tickets, setTickets] = useState(DEMO_TICKETS);
   const [resolvingTicketIds, setResolvingTicketIds] = useState({});
   const [stats, setStats] = useState({
     total_open: 12,
@@ -539,6 +677,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(!DEMO_MODE);
   const [error, setError] = useState('');
   const [authToken, setAuthToken] = useState('');
+  const [operatorName, setOperatorName] = useState('Operator');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -620,6 +759,7 @@ export default function Dashboard() {
 
   const handleUnauthorized = useCallback(() => {
     setAuthToken('');
+    setOperatorName('Operator');
     setSocketLive(false);
     setError('');
   }, []);
@@ -649,13 +789,10 @@ export default function Dashboard() {
   }, [dismissToast]);
 
   const mergeTicket = useCallback((incoming) => {
-    const normalized = {
+    const normalized = normalizeTicket({
       ...incoming,
-      severity: normalizeSeverity(incoming.severity),
-      status: normalizeStatus(incoming.status),
-      created_at: incoming.created_at || new Date().toISOString(),
-      phone: incoming.phone ? incoming.phone : maskPhone('')
-    };
+      created_at: incoming.created_at || new Date().toISOString()
+    });
     setTickets((prev) => [normalized, ...prev.filter((item) => item.id !== normalized.id)].slice(0, 200));
   }, []);
 
@@ -701,12 +838,7 @@ export default function Dashboard() {
       const nextStats = await statsRes.json();
       setTickets(
         Array.isArray(nextTickets)
-          ? nextTickets.map((ticket) => ({
-            ...ticket,
-            severity: normalizeSeverity(ticket.severity),
-            status: normalizeStatus(ticket.status),
-            phone: ticket.phone || maskPhone('')
-          }))
+          ? nextTickets.map((ticket) => normalizeTicket(ticket))
           : []
       );
       setStats(nextStats || {});
@@ -851,6 +983,72 @@ export default function Dashboard() {
     breached: breachedMetric
   }), [baseMetrics, breachedMetric]);
 
+  const categoryBreakdown = useMemo(() => {
+    const palette = ['#00d4ff', '#22c55e', '#f59e0b', '#ef4444', '#a78bfa', '#14b8a6', '#64748b'];
+    const map = new Map();
+    tickets.forEach((ticket) => {
+      const key = displayCategory(ticket.category);
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count], index) => ({
+      name,
+      count,
+      color: palette[index % palette.length]
+    }));
+  }, [tickets]);
+
+  const resolutionAnalytics = useMemo(() => {
+    const total = tickets.length;
+    const resolvedTickets = tickets.filter((ticket) => normalizeStatus(ticket.status) === 'resolved');
+    const resolved = resolvedTickets.length;
+    const resolutionRate = total === 0 ? 0 : Math.round((resolved / total) * 100);
+    const resolvedWithTimestamp = resolvedTickets.filter((ticket) => Boolean(ticket.resolved_at));
+    const averageResolutionHours = resolvedWithTimestamp.length === 0
+      ? 0
+      : resolvedWithTimestamp.reduce((sum, ticket) => {
+        const created = new Date(ticket.created_at || Date.now()).getTime();
+        const closed = new Date(ticket.resolved_at).getTime();
+        const durationHours = Math.max(0, (closed - created) / 3600000);
+        return sum + durationHours;
+      }, 0) / resolvedWithTimestamp.length;
+    return {
+      total,
+      resolved,
+      resolutionRate,
+      averageResolutionHours
+    };
+  }, [tickets]);
+
+  const wardPerformance = useMemo(() => {
+    const wardMap = new Map();
+    tickets.forEach((ticket) => {
+      const ward = displayWard(ticket);
+      const status = normalizeStatus(ticket.status);
+      const breached = formatCountdown(ticket.sla_deadline, nowMs).label.startsWith('BREACHED');
+      const current = wardMap.get(ward) || {
+        ward,
+        open: 0,
+        resolved: 0,
+        breached: 0
+      };
+      if (status === 'resolved') {
+        current.resolved += 1;
+      } else {
+        current.open += 1;
+      }
+      if (breached) {
+        current.breached += 1;
+      }
+      wardMap.set(ward, current);
+    });
+    const rows = Array.from(wardMap.values()).sort((a, b) => b.open - a.open);
+    const maxOpen = rows.length > 0 ? rows[0].open : 0;
+    return {
+      rows,
+      maxOpen
+    };
+  }, [tickets, nowMs]);
+
   useEffect(() => {
     if (!kpiPrevRef.current) {
       kpiPrevRef.current = metrics;
@@ -899,7 +1097,7 @@ export default function Dashboard() {
   }, []);
 
   const wards = useMemo(() => {
-    return [...new Set(tickets.map((ticket) => String(ticket.ward_id ?? 'Unknown')))];
+    return [...new Set(tickets.map((ticket) => displayWard(ticket)))];
   }, [tickets]);
 
   const filteredTickets = useMemo(() => {
@@ -907,7 +1105,7 @@ export default function Dashboard() {
     return tickets.filter((ticket) => {
       const status = normalizeStatus(ticket.status);
       const severity = normalizeSeverity(ticket.severity);
-      const ward = String(ticket.ward_id ?? 'Unknown');
+      const ward = displayWard(ticket);
       const passStatus = statusFilter === 'all' || status === statusFilter;
       const passSeverity = severityFilter === 'all' || severity === severityFilter;
       const passWard = wardFilter === 'all' || ward === wardFilter;
@@ -939,6 +1137,7 @@ export default function Dashboard() {
   }, []);
   const handleLogout = useCallback(() => {
     setAuthToken('');
+    setOperatorName('Operator');
     setSocketLive(false);
     setLoginPassword('');
     setLoginError('');
@@ -987,6 +1186,7 @@ export default function Dashboard() {
       }
 
       setAuthToken(data.token);
+      setOperatorName(decodeJwtUsername(data.token));
       setLoginPassword('');
       setError('');
     } catch (error) {
@@ -995,6 +1195,14 @@ export default function Dashboard() {
       setLoginSubmitting(false);
     }
   }, [loginPassword, loginUsername]);
+
+  useEffect(() => {
+    if (!authToken) {
+      setOperatorName('Operator');
+      return;
+    }
+    setOperatorName(decodeJwtUsername(authToken));
+  }, [authToken]);
 
   useEffect(() => {
     if (isActivityDrawerOpen) {
@@ -1110,10 +1318,10 @@ export default function Dashboard() {
       <div className="mx-auto max-w-[1600px] space-y-4">
         <header className="flex flex-col gap-3 rounded-xl border border-white/10 bg-[#111827] p-4 shadow-xl shadow-black/30 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-cyan-500/20 text-cyan-300">🎙️</div>
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-cyan-500/20 text-cyan-300">🗣️</div>
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Voice-first Ops</p>
-              <h1 className="text-2xl font-bold text-white">GrievanceOS</h1>
+              <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Voice-First Civic Governance</p>
+              <h1 className="text-2xl font-bold text-white">JanSamvaad ResolveOS</h1>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -1127,9 +1335,17 @@ export default function Dashboard() {
               <span className="mr-2 font-semibold text-slate-100">Clock</span>
               <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatClock(clock)}</span>
             </div>
+            <div className="rounded-lg border border-cyan-500/40 bg-slate-900/70 p-2 text-center">
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=tel:+15706308042"
+                alt="Twilio live demo number QR"
+                className="mx-auto h-12 w-12 rounded"
+              />
+              <p className="mt-1 text-[10px] text-cyan-200">📞 Scan to call live demo</p>
+            </div>
             <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-2 py-1">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-cyan-500/20 text-sm font-bold text-cyan-200">AS</div>
-              <p className="hidden text-sm text-slate-200 md:block">A. Singh</p>
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-cyan-500/20 text-sm font-bold text-cyan-200">{getInitials(operatorName)}</div>
+              <p className="hidden text-sm text-slate-200 md:block">{operatorName || 'Operator'}</p>
               <button
                 type="button"
                 onClick={handleLogout}
@@ -1146,6 +1362,85 @@ export default function Dashboard() {
           <KPICard title="Open" value={metrics.open} trend={trends.open} accent="text-blue-300" delayMs={100} />
           <KPICard title="SLA Breached" value={metrics.breached} trend={trends.breached} accent="text-red-300" delayMs={200} />
           <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-emerald-300" delayMs={300} />
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+            <h3 className="mb-3 text-sm font-semibold text-slate-100">Category Breakdown</h3>
+            <div className="flex items-center gap-4">
+              <div
+                className="h-44 w-44 rounded-full"
+                style={{
+                  background: categoryBreakdown.length > 0
+                    ? `conic-gradient(${categoryBreakdown.map((item, index, arr) => {
+                      const previous = arr.slice(0, index).reduce((sum, node) => sum + node.count, 0);
+                      const total = arr.reduce((sum, node) => sum + node.count, 0) || 1;
+                      const start = (previous / total) * 100;
+                      const end = ((previous + item.count) / total) * 100;
+                      return `${item.color} ${start}% ${end}%`;
+                    }).join(', ')})`
+                    : '#1f2937'
+                }}
+              />
+              <div className="space-y-2">
+                {categoryBreakdown.map((item) => (
+                  <div key={item.name} className="flex items-center gap-2 text-xs text-slate-300">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span>{item.name}: {item.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+            <h3 className="mb-3 text-sm font-semibold text-slate-100">Resolution Rate</h3>
+            <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
+                <p className="text-slate-400">Total Tickets</p>
+                <p className="mt-1 text-xl font-semibold text-cyan-300">{resolutionAnalytics.total}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
+                <p className="text-slate-400">Resolved</p>
+                <p className="mt-1 text-xl font-semibold text-emerald-300">{resolutionAnalytics.resolved}</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="text-4xl font-bold text-emerald-300">{resolutionAnalytics.resolutionRate}%</p>
+              <p className="mt-1 text-xs text-slate-400">Average resolution time: {resolutionAnalytics.averageResolutionHours.toFixed(1)} hours</p>
+              <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-emerald-400 transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.max(0, resolutionAnalytics.resolutionRate))}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+          <h3 className="mb-3 text-sm font-semibold text-slate-100">Ward Performance</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-xs text-slate-300">
+              <thead className="text-slate-400">
+                <tr>
+                  <th className="px-3 py-2">Ward</th>
+                  <th className="px-3 py-2">Open Tickets</th>
+                  <th className="px-3 py-2">Resolved</th>
+                  <th className="px-3 py-2">SLA Breached</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wardPerformance.rows.map((ward) => (
+                  <tr key={ward.ward} className={`border-t border-white/5 ${wardPerformance.maxOpen > 0 && ward.open === wardPerformance.maxOpen ? 'bg-red-500/10' : ''}`}>
+                    <td className="px-3 py-2">{ward.ward}</td>
+                    <td className={`px-3 py-2 font-semibold ${wardPerformance.maxOpen > 0 && ward.open === wardPerformance.maxOpen ? 'text-red-300' : 'text-slate-200'}`}>{ward.open}</td>
+                    <td className="px-3 py-2 text-emerald-300">{ward.resolved}</td>
+                    <td className="px-3 py-2 text-rose-300">{ward.breached}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <SeverityBar tickets={tickets} counts={severityCounts} />
