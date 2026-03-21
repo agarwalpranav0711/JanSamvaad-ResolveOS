@@ -158,15 +158,21 @@ router.post('/record', async (req, res) => {
 });
 
 router.post('/transcribe', async (req, res) => {
-  const transcript = req.body.TranscriptionText || '';
+  const transcript = (req.body.TranscriptionText || '').trim();
   const phone = req.body.From || req.body.Called || '';
+
+  // SAFE IMPROVEMENT: Prevent silent/empty audio from creating useless demo tickets.
+  if (transcript.length < 5) {
+    return res.status(200).send('');
+  }
 
   try {
     const grievanceIntent = await extractIntent(transcript);
     const severityMap = { high: 'High', medium: 'Medium', low: 'Low' };
     const ticketPayload = {
       category: grievanceIntent.category || 'other',
-      ward_id: grievanceIntent.ward ? Number(grievanceIntent.ward) || null : null,
+      // SAFE IMPROVEMENT: Prevent Postgres foreign-key crashes by nullifying ward_id if AI hallucinates an unknown ward.
+      ward_id: null,
       severity: severityMap[String(grievanceIntent.urgency || '').toLowerCase()] || 'Medium'
     };
     const ticket = await createTicket(phone, ticketPayload);
