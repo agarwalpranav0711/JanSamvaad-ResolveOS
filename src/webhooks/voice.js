@@ -6,12 +6,27 @@ const { isDndNumber } = require('../../lib/dndScrub');
 const { extractIntent } = require('../services/llm');
 const { createTicket } = require('../crm/ticket');
 const logger = require('../utils/logger');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null;
+
+const webhookLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 30,
+  message: 'Too many requests'
+});
+
+function maskPhone(phone) {
+  if (!phone || phone.length < 4) return phone || null;
+  const normalized = String(phone);
+  const prefix = normalized.startsWith('+91') ? '+91' : normalized.slice(0, 2);
+  const suffix = normalized.slice(-4);
+  return `${prefix}******${suffix}`;
+}
 
 function validateTwilioSignature(req, res, next) {
   if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
@@ -36,7 +51,7 @@ function validateTwilioSignature(req, res, next) {
   next();
 }
 
-router.use(['/voice', '/consent', '/lang', '/record', '/transcribe'], validateTwilioSignature);
+router.use(['/voice', '/consent', '/lang', '/record', '/transcribe'], webhookLimiter, validateTwilioSignature);
 
 async function logConsent(phone, consented, requestLogger) {
   try {
@@ -46,7 +61,7 @@ async function logConsent(phone, consented, requestLogger) {
       [phone, consented]
     );
   } catch (error) {
-    (requestLogger || logger).error({ err: error, phone }, 'Failed to log consent');
+    (requestLogger || logger).error({ err: error, phone: maskPhone(phone) }, 'Failed to log consent');
   }
 }
 
@@ -158,8 +173,13 @@ router.post('/record', async (req, res) => {
 });
 
 router.post('/transcribe', async (req, res) => {
-  const transcript = (req.body.TranscriptionText || '').trim();
+  let transcript = (req.body.TranscriptionText || '').trim();
   const phone = req.body.From || req.body.Called || '';
+
+  // SAFE IMPROVEMENT: Truncate input to avoid LLM abuse/huge payloads
+  if (transcript.length > 1000) {
+    transcript = transcript.substring(0, 1000);
+  }
 
   // SAFE IMPROVEMENT: Prevent silent/empty audio from creating useless demo tickets.
   if (transcript.length < 5) {

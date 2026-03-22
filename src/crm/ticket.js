@@ -45,6 +45,10 @@ function isSlaBreached(slaDeadline) {
 }
 
 async function createTicket(phone, grievanceData) {
+  if (!phone || !grievanceData) {
+    throw new Error('Valid phone and grievanceData are required');
+  }
+
   const client = await pool.connect();
 
   try {
