@@ -1,5 +1,14 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import Sidebar from './Sidebar';
+import GISMap from './pages/GISMap';
+import Ledger from './pages/Ledger';
+import Analytics from './pages/Analytics';
+import ActivityLog from './pages/ActivityLog';
+import OfficerPerformance from './pages/OfficerPerformance';
+import Reports from './pages/Reports';
+import QRScanner from './pages/QRScanner';
+import SettingsPage from './pages/Settings';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -699,6 +708,8 @@ export default function Dashboard() {
   const [isActivityDrawerOpen, setIsActivityDrawerOpen] = useState(false);
   const [activityUnread, setActivityUnread] = useState(0);
   const [expandedRows, setExpandedRows] = useState({});
+  const [activePage, setActivePage] = useState('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [trends, setTrends] = useState({
     total: 0,
     open: 0,
@@ -1260,376 +1271,249 @@ export default function Dashboard() {
   if (!DEMO_MODE && !authToken) {
     return (
       <div
-        className="grid min-h-screen place-items-center p-5 text-slate-100"
-        style={{ backgroundColor: '#0a0f1e', fontFamily: "'DM Sans', sans-serif" }}
+        className="relative grid min-h-screen place-items-center p-5 text-slate-100 overflow-hidden"
+        style={{
+          backgroundColor: '#080c10',
+          fontFamily: "'DM Sans', sans-serif",
+          background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.08) 0%, #080c10 60%)'
+        }}
       >
-        <form
-          onSubmit={handleLoginSubmit}
-          className="w-full max-w-sm rounded-xl border border-white/10 bg-[#111827] p-6 shadow-xl shadow-black/40"
-        >
-          <h1 className="mb-1 text-xl font-bold text-white">Operator Login</h1>
-          <p className="mb-4 text-sm text-slate-400">Sign in to access GrievanceOS dashboard.</p>
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={loginUsername}
-              onChange={handleLoginUsernameChange}
-              placeholder="Username"
-              className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/70"
-              required
-            />
-            <input
-              type="password"
-              value={loginPassword}
-              onChange={handleLoginPasswordChange}
-              placeholder="Password"
-              className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/70"
-              required
-            />
-            {loginError ? (
-              <p className="text-xs text-rose-300">{loginError}</p>
-            ) : null}
-            <button
-              type="submit"
-              disabled={loginSubmitting}
-              className="w-full rounded-md border border-cyan-500/40 bg-cyan-500/20 px-3 py-2 text-sm font-semibold text-cyan-100 transition-all duration-200 hover:bg-cyan-500/30 disabled:opacity-60"
-            >
-              {loginSubmitting ? 'Signing in...' : 'Sign in'}
-            </button>
+        {/* Subtle animated glow */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.06) 0%, transparent 50%)',
+          animation: 'loginGlow 4s ease-in-out infinite alternate'
+        }} />
+        <div className="relative z-10 w-full max-w-sm">
+          {/* Branding */}
+          <div className="text-center mb-6">
+            <span className="text-4xl">🗣️</span>
+            <h2 className="text-xl font-bold text-[#f8f5f0] mt-2">JanSamvaad <span className="text-[#10b981]">ResolveOS</span></h2>
+            <p className="text-xs text-[#a3c9aa]/60 mt-1 uppercase tracking-widest">Voice-First Civic Governance</p>
           </div>
-        </form>
+          <form
+            onSubmit={handleLoginSubmit}
+            className="w-full rounded-xl border border-[#10b981]/20 bg-[#111827]/90 p-6 shadow-xl shadow-[#10b981]/5 backdrop-blur-sm"
+            style={{ boxShadow: '0 0 40px rgba(16,185,129,0.06), 0 25px 50px rgba(0,0,0,0.4)' }}
+          >
+            <h1 className="mb-1 text-xl font-bold text-white">Operator Login</h1>
+            <p className="mb-4 text-sm text-slate-400">Sign in to access JanSamvaad ResolveOS</p>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={loginUsername}
+                onChange={handleLoginUsernameChange}
+                placeholder="Username"
+                className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#10b981]/50 focus:ring-1 focus:ring-[#10b981]/20 transition-all"
+                required
+              />
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={handleLoginPasswordChange}
+                placeholder="Password"
+                className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#10b981]/50 focus:ring-1 focus:ring-[#10b981]/20 transition-all"
+                required
+              />
+              {loginError ? (
+                <p className="text-xs text-rose-300">{loginError}</p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={loginSubmitting}
+                className="w-full rounded-md bg-[#10b981] px-3 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-[#059669] active:scale-[0.98] disabled:opacity-60"
+              >
+                {loginSubmitting ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
+          <p className="text-center mt-4 text-xs text-[#a3c9aa]/30">India Innovates 2026 — Bharat Mandapam, New Delhi</p>
+        </div>
+        <style>{`
+          @keyframes loginGlow {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+          }
+        `}</style>
       </div>
     );
   }
 
+  /* ─── Render Overview (existing dashboard content) ─── */
+  const renderOverview = () => (
+    <>
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <KPICard title="Total Tickets" value={metrics.total} trend={trends.total} accent="text-cyan-300" delayMs={0} />
+        <KPICard title="Open" value={metrics.open} trend={trends.open} accent="text-blue-300" delayMs={100} />
+        <KPICard title="SLA Breached" value={metrics.breached} trend={trends.breached} accent="text-red-300" delayMs={200} />
+        <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-emerald-300" delayMs={300} />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+          <h3 className="mb-3 text-sm font-semibold text-slate-100">Category Breakdown</h3>
+          <div className="flex items-center gap-4">
+            <div
+              className="h-44 w-44 rounded-full flex-shrink-0"
+              style={{
+                background: categoryBreakdown.length > 0
+                  ? `conic-gradient(${categoryBreakdown.map((item, index, arr) => {
+                    const previous = arr.slice(0, index).reduce((sum, node) => sum + node.count, 0);
+                    const total = arr.reduce((sum, node) => sum + node.count, 0) || 1;
+                    const start = (previous / total) * 100;
+                    const end = ((previous + item.count) / total) * 100;
+                    return `${item.color} ${start}% ${end}%`;
+                  }).join(', ')})`
+                  : '#1f2937'
+              }}
+            />
+            <div className="space-y-2">
+              {categoryBreakdown.map((item) => (
+                <div key={item.name} className="flex items-center gap-2 text-xs text-slate-300">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span>{item.name}: {item.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+          <h3 className="mb-3 text-sm font-semibold text-slate-100">Resolution Rate</h3>
+          <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
+            <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
+              <p className="text-slate-400">Total Tickets</p>
+              <p className="mt-1 text-xl font-semibold text-cyan-300">{resolutionAnalytics.total}</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
+              <p className="text-slate-400">Resolved</p>
+              <p className="mt-1 text-xl font-semibold text-emerald-300">{resolutionAnalytics.resolved}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="text-4xl font-bold text-emerald-300">{resolutionAnalytics.resolutionRate}%</p>
+            <p className="mt-1 text-xs text-slate-400">Average resolution time: {resolutionAnalytics.averageResolutionHours.toFixed(1)} hours</p>
+            <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full rounded-full bg-emerald-400 transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, resolutionAnalytics.resolutionRate))}%` }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <SeverityBar tickets={tickets} counts={severityCounts} />
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-xl shadow-black/30">
+          <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <h2 className="text-lg font-semibold text-white">Live Ticket Feed</h2>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <input value={searchInput} onChange={handleSearchChange} placeholder="Search ref/category" className="rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/70" />
+              <select value={statusFilter} onChange={handleStatusFilterChange} className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none">
+                <option value="all">All Status</option><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option>
+              </select>
+              <select value={severityFilter} onChange={handleSeverityFilterChange} className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none">
+                <option value="all">All Severity</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option>
+              </select>
+              <select value={wardFilter} onChange={handleWardFilterChange} className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none">
+                <option value="all">All Wards</option>
+                {wards.map((ward) => <option key={ward} value={ward}>{ward}</option>)}
+              </select>
+            </div>
+          </div>
+          {loading ? (
+            <div className="grid h-64 place-items-center text-sm text-slate-400">Loading dashboard data...</div>
+          ) : error ? (
+            <div className="grid h-64 place-items-center text-sm text-rose-300">{error}</div>
+          ) : filteredTickets.length === 0 ? (
+            <div className="grid h-64 place-items-center text-sm text-slate-400">No tickets match current filters.</div>
+          ) : (
+            <>
+              <div className="space-y-3 md:hidden">
+                {visibleTickets.map((ticket) => (
+                  <MobileTicketCard key={ticket.id} ticket={ticket} nowMs={nowMs} isBreached={breachTicketIds.includes(ticket.id)} isNew={newTicketIds.includes(ticket.id)} isResolving={Boolean(resolvingTicketIds[ticket.id])} onResolve={handleResolve} />
+                ))}
+                {canLoadMore && <button type="button" onClick={handleLoadMore} className="w-full rounded-md border border-white/10 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700/70">Load more</button>}
+              </div>
+              <div className="hidden overflow-auto md:block">
+                <table role="grid" className="min-w-full text-left">
+                  <thead className="sticky top-0 z-10 bg-[#0e1528] text-xs uppercase tracking-wide text-slate-400">
+                    <tr role="row">
+                      <th className="px-3 py-2">Ref</th><th className="px-3 py-2">Category</th><th className="hidden px-3 py-2 lg:table-cell">Ward</th><th className="px-3 py-2">Severity</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">SLA Countdown</th><th className="hidden px-3 py-2 lg:table-cell">Phone</th><th className="px-3 py-2 text-center">Evidence</th><th className="px-3 py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleTickets.map((ticket) => (
+                      <TicketRow key={ticket.id} ticket={ticket} nowMs={nowMs} isBreached={breachTicketIds.includes(ticket.id)} isNew={newTicketIds.includes(ticket.id)} isResolving={Boolean(resolvingTicketIds[ticket.id])} onResolve={handleResolve} isExpanded={Boolean(expandedRows[ticket.id])} onToggleExpand={toggleRowExpand} onCollapse={collapseRow} />
+                    ))}
+                  </tbody>
+                </table>
+                {canLoadMore && <div className="mt-3 text-center"><button type="button" onClick={handleLoadMore} className="rounded-md border border-white/10 bg-slate-800/70 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700/70">Load more</button></div>}
+              </div>
+            </>
+          )}
+        </div>
+        <div aria-live="polite" className="hidden lg:block">
+          <ActivitySidebar items={activity} ready={sidebarReady} />
+        </div>
+      </section>
+    </>
+  );
+
+  /* ─── Page dispatcher ─── */
+  const renderActivePage = () => {
+    switch (activePage) {
+      case 'gis': return <GISMap tickets={tickets} />;
+      case 'ledger': return <Ledger tickets={tickets} />;
+      case 'analytics': return <Analytics tickets={tickets} />;
+      case 'activity': return <ActivityLog socket={socketRef.current} tickets={tickets} />;
+      case 'officers': return <OfficerPerformance tickets={tickets} />;
+      case 'reports': return <Reports tickets={tickets} />;
+      case 'qr': return <QRScanner />;
+      case 'settings': return <SettingsPage />;
+      default: return renderOverview();
+    }
+  };
+
   return (
-    <div
-      className="min-h-screen p-5 text-slate-100"
-      style={{ backgroundColor: '#0a0f1e', fontFamily: "'DM Sans', sans-serif" }}
-    >
+    <div className="min-h-screen text-slate-100" style={{ backgroundColor: '#080c10', fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @keyframes rowFlash { 0% { background-color: rgba(250, 204, 21, 0.35); } 100% { background-color: transparent; } }
         @keyframes rowSlide { 0% { transform: translateY(-12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes kpiIn { 0% { transform: translateY(8px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
       `}</style>
 
+      <Sidebar
+        activePage={activePage}
+        onNavigate={setActivePage}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+        operatorName={operatorName}
+      />
+
       <ToastStack toasts={toasts} onToastDismiss={dismissToast} />
 
-      <div className="mx-auto max-w-[1600px] space-y-4">
-        <header className="flex flex-col gap-3 rounded-xl border border-white/10 bg-[#111827] p-4 shadow-xl shadow-black/30 md:flex-row md:items-center md:justify-between">
+      {/* Main content area — offset by sidebar width */}
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[220px]'} pb-20 md:pb-0`}>
+        <header className="flex flex-col gap-3 border-b border-white/5 bg-[#0d1117]/80 backdrop-blur-sm p-4 md:flex-row md:items-center md:justify-between sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-cyan-500/20 text-cyan-300">🗣️</div>
+            <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#10b981]/20 text-[#10b981]">🗣️</div>
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Voice-First Civic Governance</p>
-              <h1 className="text-2xl font-bold text-white">JanSamvaad ResolveOS</h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#10b981]">Voice-First Civic Governance</p>
+              <h1 className="text-lg font-bold text-white">JanSamvaad ResolveOS</h1>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold ${
-              socketLive ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-200' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'
-            }`}>
-              <span className={`h-2 w-2 rounded-full ${socketLive ? 'animate-pulse bg-emerald-300' : 'bg-rose-300'}`} />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${socketLive ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-200' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${socketLive ? 'animate-pulse bg-emerald-300' : 'bg-rose-300'}`} />
               {socketLive ? 'LIVE' : 'OFFLINE'}
             </div>
-            <div className="rounded-lg border border-white/10 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
-              <span className="mr-2 font-semibold text-slate-100">Clock</span>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatClock(clock)}</span>
-            </div>
-            <div className="rounded-lg border border-cyan-500/40 bg-slate-900/70 p-2 text-center">
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=tel:+15706308042"
-                alt="Twilio live demo number QR"
-                className="mx-auto h-12 w-12 rounded"
-              />
-              <p className="mt-1 text-[10px] text-cyan-200">📞 Scan to call live demo</p>
-            </div>
-            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-2 py-1">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-cyan-500/20 text-sm font-bold text-cyan-200">{getInitials(operatorName)}</div>
-              <p className="hidden text-sm text-slate-200 md:block">{operatorName || 'Operator'}</p>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded border border-slate-500/40 bg-slate-500/10 px-2 py-1 text-xs font-semibold text-slate-200 transition-all duration-200 hover:bg-slate-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-              >
-                Logout
-              </button>
-            </div>
+            <span className="hidden sm:inline text-xs text-slate-400 font-mono">{formatClock(clock)}</span>
+            <button type="button" onClick={handleLogout} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/[0.06] transition-all">Logout</button>
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <KPICard title="Total Tickets" value={metrics.total} trend={trends.total} accent="text-cyan-300" delayMs={0} />
-          <KPICard title="Open" value={metrics.open} trend={trends.open} accent="text-blue-300" delayMs={100} />
-          <KPICard title="SLA Breached" value={metrics.breached} trend={trends.breached} accent="text-red-300" delayMs={200} />
-          <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-emerald-300" delayMs={300} />
-        </section>
-
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
-            <h3 className="mb-3 text-sm font-semibold text-slate-100">Category Breakdown</h3>
-            <div className="flex items-center gap-4">
-              <div
-                className="h-44 w-44 rounded-full"
-                style={{
-                  background: categoryBreakdown.length > 0
-                    ? `conic-gradient(${categoryBreakdown.map((item, index, arr) => {
-                      const previous = arr.slice(0, index).reduce((sum, node) => sum + node.count, 0);
-                      const total = arr.reduce((sum, node) => sum + node.count, 0) || 1;
-                      const start = (previous / total) * 100;
-                      const end = ((previous + item.count) / total) * 100;
-                      return `${item.color} ${start}% ${end}%`;
-                    }).join(', ')})`
-                    : '#1f2937'
-                }}
-              />
-              <div className="space-y-2">
-                {categoryBreakdown.map((item) => (
-                  <div key={item.name} className="flex items-center gap-2 text-xs text-slate-300">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span>{item.name}: {item.count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
-            <h3 className="mb-3 text-sm font-semibold text-slate-100">Resolution Rate</h3>
-            <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
-              <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
-                <p className="text-slate-400">Total Tickets</p>
-                <p className="mt-1 text-xl font-semibold text-cyan-300">{resolutionAnalytics.total}</p>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
-                <p className="text-slate-400">Resolved</p>
-                <p className="mt-1 text-xl font-semibold text-emerald-300">{resolutionAnalytics.resolved}</p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <p className="text-4xl font-bold text-emerald-300">{resolutionAnalytics.resolutionRate}%</p>
-              <p className="mt-1 text-xs text-slate-400">Average resolution time: {resolutionAnalytics.averageResolutionHours.toFixed(1)} hours</p>
-              <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className="h-full rounded-full bg-emerald-400 transition-all duration-300"
-                  style={{ width: `${Math.min(100, Math.max(0, resolutionAnalytics.resolutionRate))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
-          <h3 className="mb-3 text-sm font-semibold text-slate-100">Ward Performance</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-xs text-slate-300">
-              <thead className="text-slate-400">
-                <tr>
-                  <th className="px-3 py-2">Ward</th>
-                  <th className="px-3 py-2">Open Tickets</th>
-                  <th className="px-3 py-2">Resolved</th>
-                  <th className="px-3 py-2">SLA Breached</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wardPerformance.rows.map((ward) => (
-                  <tr key={ward.ward} className={`border-t border-white/5 ${wardPerformance.maxOpen > 0 && ward.open === wardPerformance.maxOpen ? 'bg-red-500/10' : ''}`}>
-                    <td className="px-3 py-2">{ward.ward}</td>
-                    <td className={`px-3 py-2 font-semibold ${wardPerformance.maxOpen > 0 && ward.open === wardPerformance.maxOpen ? 'text-red-300' : 'text-slate-200'}`}>{ward.open}</td>
-                    <td className="px-3 py-2 text-emerald-300">{ward.resolved}</td>
-                    <td className="px-3 py-2 text-rose-300">{ward.breached}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <SeverityBar tickets={tickets} counts={severityCounts} />
-
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_96px] lg:grid-cols-[1fr_320px]">
-          <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-xl shadow-black/30">
-            <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="text-lg font-semibold text-white">Live Ticket Feed</h2>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <input
-                  value={searchInput}
-                  onChange={handleSearchChange}
-                  placeholder="Search ref/category"
-                  className="rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/70 focus-visible:ring-2 focus-visible:ring-cyan-400"
-                />
-                <select
-                  value={statusFilter}
-                  onChange={handleStatusFilterChange}
-                  className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none focus:border-cyan-500/70 focus-visible:ring-2 focus-visible:ring-cyan-400"
-                >
-                  <option value="all">All Status</option>
-                  <option value="open">Open</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                </select>
-                <select
-                  value={severityFilter}
-                  onChange={handleSeverityFilterChange}
-                  className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none focus:border-cyan-500/70 focus-visible:ring-2 focus-visible:ring-cyan-400"
-                >
-                  <option value="all">All Severity</option>
-                  <option value="CRITICAL">CRITICAL</option>
-                  <option value="HIGH">HIGH</option>
-                  <option value="MEDIUM">MEDIUM</option>
-                  <option value="LOW">LOW</option>
-                </select>
-                <select
-                  value={wardFilter}
-                  onChange={handleWardFilterChange}
-                  className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-2 text-xs text-slate-100 outline-none focus:border-cyan-500/70 focus-visible:ring-2 focus-visible:ring-cyan-400"
-                >
-                  <option value="all">All Wards</option>
-                  {wards.map((ward) => (
-                    <option key={ward} value={ward}>{ward}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="grid h-64 place-items-center text-sm text-slate-400">Loading dashboard data...</div>
-            ) : error ? (
-              <div className="grid h-64 place-items-center text-sm text-rose-300">{error}</div>
-            ) : filteredTickets.length === 0 ? (
-              <div className="grid h-64 place-items-center text-sm text-slate-400">No tickets match current filters.</div>
-            ) : (
-              <>
-                <div className="space-y-3 md:hidden">
-                  {visibleTickets.map((ticket) => (
-                    <MobileTicketCard
-                      key={ticket.id}
-                      ticket={ticket}
-                      nowMs={nowMs}
-                      isBreached={breachTicketIds.includes(ticket.id)}
-                      isNew={newTicketIds.includes(ticket.id)}
-                      isResolving={Boolean(resolvingTicketIds[ticket.id])}
-                      onResolve={handleResolve}
-                    />
-                  ))}
-                  {canLoadMore ? (
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      className="w-full rounded-md border border-white/10 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition-all duration-200 hover:bg-slate-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                    >
-                      Load more
-                    </button>
-                  ) : null}
-                </div>
-                <div className="hidden overflow-auto md:block">
-                <table role="grid" className="min-w-full text-left">
-                  <thead className="sticky top-0 z-10 bg-[#0e1528] text-xs uppercase tracking-wide text-slate-400">
-                    <tr role="row">
-                      <th aria-sort="none" className="px-3 py-2">Ref</th>
-                      <th aria-sort="none" className="px-3 py-2">Category</th>
-                      <th aria-sort="none" className="hidden px-3 py-2 lg:table-cell">Ward</th>
-                      <th aria-sort="none" className="px-3 py-2">Severity</th>
-                      <th aria-sort="none" className="px-3 py-2">Status</th>
-                      <th aria-sort="none" className="px-3 py-2">SLA Countdown</th>
-                      <th aria-sort="none" className="hidden px-3 py-2 lg:table-cell">Phone</th>
-                      <th className="px-3 py-2 text-center">Evidence</th>
-                      <th className="px-3 py-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleTickets.map((ticket) => (
-                      <TicketRow
-                        key={ticket.id}
-                        ticket={ticket}
-                        nowMs={nowMs}
-                        isBreached={breachTicketIds.includes(ticket.id)}
-                        isNew={newTicketIds.includes(ticket.id)}
-                        isResolving={Boolean(resolvingTicketIds[ticket.id])}
-                        onResolve={handleResolve}
-                        isExpanded={Boolean(expandedRows[ticket.id])}
-                        onToggleExpand={toggleRowExpand}
-                        onCollapse={collapseRow}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-                {canLoadMore ? (
-                  <div className="mt-3 text-center">
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      className="rounded-md border border-white/10 bg-slate-800/70 px-4 py-2 text-xs font-semibold text-slate-200 transition-all duration-200 hover:bg-slate-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                    >
-                      Load more
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-              </>
-            )}
-          </div>
-
-          <div aria-live="polite" className="hidden md:block">
-            <ActivitySidebar items={activity} ready={sidebarReady} />
-          </div>
-        </section>
+        <main className="p-4 md:p-6 space-y-4 max-w-[1600px] mx-auto">
+          {renderActivePage()}
+        </main>
       </div>
-
-      <button
-        ref={bellButtonRef}
-        type="button"
-        onClick={openActivityDrawer}
-        aria-label="Open activity notifications"
-        className="fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-[#111827] text-xl text-slate-100 shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 md:hidden"
-      >
-        🔔
-        {activityUnread > 0 ? (
-          <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white">
-            {activityUnread > 99 ? '99+' : activityUnread}
-          </span>
-        ) : null}
-      </button>
-
-      {isActivityDrawerOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/60 md:hidden">
-          <button
-            type="button"
-            onClick={closeActivityDrawer}
-            className="absolute inset-0 h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-            aria-label="Close activity drawer"
-          />
-          <div
-            ref={drawerRef}
-            role="dialog"
-            aria-modal="true"
-            aria-live="polite"
-            className="absolute bottom-0 left-0 right-0 max-h-[72vh] rounded-t-2xl border border-white/10 bg-[#111827] p-4 shadow-2xl"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-100">Recent Activity</h3>
-              <button
-                ref={drawerCloseButtonRef}
-                type="button"
-                onClick={closeActivityDrawer}
-                className="rounded-md border border-white/10 px-2 py-1 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-              >
-                Close
-              </button>
-            </div>
-            <div className="h-[52vh] space-y-2 overflow-y-auto">
-              {activity.length === 0 ? (
-                <p className="text-sm text-slate-500">No live events yet.</p>
-              ) : (
-                activity.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-white/10 bg-slate-900/60 p-2">
-                    <p className="text-xs text-slate-200">{item.message}</p>
-                    <p className="mt-1 text-[11px] text-slate-400">{formatRelativeTime(item.timestamp)}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
