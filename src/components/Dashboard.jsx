@@ -886,6 +886,13 @@ export default function Dashboard() {
     socket.on('disconnect', onDisconnect);
 
     socket.on('new_ticket', (ticket) => {
+      try {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch (err) {
+        // Silently fail if audio not supported
+      }
       mergeTicket(ticket);
       setNewTicketIds((prev) => [ticket.id, ...prev].slice(0, 50));
       setTimeout(() => {
@@ -1341,14 +1348,14 @@ export default function Dashboard() {
   /* ─── Render Overview (existing dashboard content) ─── */
   const renderOverview = () => (
     <>
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
         <KPICard title="Total Tickets" value={metrics.total} trend={trends.total} accent="text-cyan-300" delayMs={0} />
         <KPICard title="Open" value={metrics.open} trend={trends.open} accent="text-blue-300" delayMs={100} />
         <KPICard title="SLA Breached" value={metrics.breached} trend={trends.breached} accent="text-red-300" delayMs={200} />
         <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-emerald-300" delayMs={300} />
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 mb-6">
         <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
           <h3 className="mb-3 text-sm font-semibold text-slate-100">Category Breakdown</h3>
           <div className="flex items-center gap-4">
@@ -1419,11 +1426,18 @@ export default function Dashboard() {
             </div>
           </div>
           {loading ? (
-            <div className="grid h-64 place-items-center text-sm text-slate-400">Loading dashboard data...</div>
+            <div className="space-y-3 mt-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-[68px] w-full rounded-lg bg-slate-700/20 animate-pulse border border-white/5" />
+              ))}
+            </div>
           ) : error ? (
             <div className="grid h-64 place-items-center text-sm text-rose-300">{error}</div>
           ) : filteredTickets.length === 0 ? (
-            <div className="grid h-64 place-items-center text-sm text-slate-400">No tickets match current filters.</div>
+            <div className="flex flex-col items-center justify-center h-64 space-y-3 text-slate-400">
+              <span className="text-5xl opacity-30">📭</span>
+              <p className="text-sm font-medium">No tickets match your current filters</p>
+            </div>
           ) : (
             <>
               <div className="space-y-3 md:hidden">

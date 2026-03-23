@@ -98,7 +98,7 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
               type="button"
               onClick={() => onNavigate(tab.key === 'more' ? 'settings' : tab.key)}
               className={`flex flex-col items-center justify-center py-2 px-3 min-w-[56px] min-h-[44px] rounded-lg transition-all duration-200 ${
-                active ? 'text-[#10b981]' : 'text-[#a3c9aa]/40'
+                active ? 'bg-[#10b981]/10 text-[#10b981] shadow-[inset_0_2px_0_0_#10b981]' : 'text-[#a3c9aa]/40 hover:text-[#f8f5f0] hover:bg-white/5'
               }`}
             >
               <span className="text-lg">{tab.icon}</span>

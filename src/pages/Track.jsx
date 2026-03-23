@@ -213,10 +213,10 @@ export default function Track() {
 
         {/* Empty State */}
         {!loading && !error && !ticket && (
-          <div className="text-center py-16">
-            <p className="text-5xl mb-4">🔎</p>
-            <p className="text-sm text-[#a3c9aa]/40">Enter your ticket reference above to begin tracking</p>
-            <p className="text-xs text-[#a3c9aa]/30 mt-1">अपना टिकट ट्रैक करने के लिए ऊपर संदर्भ नंबर दर्ज करें</p>
+          <div className="text-center py-16 text-slate-400">
+            <p className="text-5xl mb-4 opacity-50">🧭</p>
+            <p className="text-sm text-[#a3c9aa]/60 font-medium">Enter your ticket reference above to begin tracking</p>
+            <p className="text-xs text-[#a3c9aa]/40 mt-2">अपना टिकट ट्रैक करने के लिए ऊपर संदर्भ नंबर दर्ज करें</p>
           </div>
         )}
 
@@ -274,7 +274,8 @@ export default function Track() {
 
             {/* ─── RESOLVED: Proof + Rating ─── */}
             {isResolved && (
-              <div className="rounded-2xl border border-[#10b981]/20 bg-[#10b981]/5 p-6 text-center">
+              <div className="relative overflow-hidden rounded-2xl border border-[#10b981]/20 bg-[#10b981]/5 p-6 text-center animate-success-flash shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent" />
                 <div className="text-5xl mb-4 animate-bounce-slow">✅</div>
                 <h3 className="text-xl font-bold text-[#10b981] mb-2">Your complaint has been resolved</h3>
                 <p className="text-sm text-[#a3c9aa]/50 mb-6">शिकायत का समाधान हो गया है</p>
@@ -317,6 +318,8 @@ export default function Track() {
         .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
         @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
         .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+        @keyframes successFlash { 0% { background-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 60px rgba(16, 185, 129, 0.4); } 100% { background-color: rgba(16, 185, 129, 0.05); box-shadow: 0 0 30px rgba(16, 185, 129, 0.1); } }
+        .animate-success-flash { animation: successFlash 1.5s ease-out forwards; }
       `}</style>
     </div>
   );
