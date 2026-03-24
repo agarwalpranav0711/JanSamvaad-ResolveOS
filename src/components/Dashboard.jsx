@@ -14,16 +14,16 @@ const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 const SEVERITY_CLASS_MAP = {
-  CRITICAL: 'bg-red-500/20 text-red-300 border border-red-500/50',
-  HIGH: 'bg-orange-500/20 text-orange-300 border border-orange-500/50',
-  MEDIUM: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50',
-  LOW: 'bg-green-500/20 text-green-300 border border-green-500/50'
+  CRITICAL: 'bg-[#CC0000]/20 text-[#FF4444] border border-[#CC0000]/30',
+  HIGH: 'bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30',
+  MEDIUM: 'bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30',
+  LOW: 'bg-[#138808]/20 text-[#22AA22] border border-[#138808]/30'
 };
 
 const STATUS_CLASS_MAP = {
-  open: 'bg-blue-500/20 text-blue-300 border border-blue-500/50',
-  in_progress: 'bg-amber-500/20 text-amber-300 border border-amber-500/50',
-  resolved: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+  open: 'bg-[#4A90D9]/20 text-[#4A90D9] border border-[#4A90D9]/30',
+  in_progress: 'bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30',
+  resolved: 'bg-[#138808]/20 text-[#22AA22] border border-[#138808]/30'
 };
 
 function maskPhone(phone) {
@@ -98,9 +98,9 @@ function formatCountdown(deadline, nowMs) {
 }
 
 function formatTrend(value) {
-  if (value > 0) return { icon: '▲', cls: 'text-emerald-300', text: `+${value}` };
-  if (value < 0) return { icon: '▼', cls: 'text-rose-300', text: `${value}` };
-  return { icon: '•', cls: 'text-slate-400', text: '0' };
+  if (value > 0) return { icon: '▲', cls: 'text-[#138808]', text: `+${value}` };
+  if (value < 0) return { icon: '▼', cls: 'text-[#CC0000]', text: `${value}` };
+  return { icon: '•', cls: 'text-[#8A9BB5]', text: '0' };
 }
 
 function displayCategory(category) {
@@ -311,7 +311,7 @@ const KPICard = memo(function KPICard({ title, value, trend, accent, delayMs }) 
 
   return (
     <div
-      className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20 transition-all duration-200 ease-in-out"
+      className="rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-lg shadow-black/20 transition-all duration-200 ease-in-out"
       style={{ animation: `kpiIn 420ms ease-in-out ${delayMs}ms both` }}
     >
       <p className="text-xs uppercase tracking-wide text-slate-400">{title}</p>
@@ -337,7 +337,7 @@ const SeverityBar = memo(function SeverityBar({ tickets, counts }) {
   ];
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+    <div className="rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-lg shadow-black/20">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-100">Severity Breakdown</h3>
         <p className="text-xs text-slate-400">{tickets.length} tickets</p>
@@ -388,7 +388,7 @@ const ActivitySidebar = memo(function ActivitySidebar({ items, ready }) {
   return (
     <aside
       aria-live="polite"
-      className={`h-full rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20 transition-all duration-300 ${ready ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}
+      className={`h-full rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-lg shadow-black/20 transition-all duration-300 ${ready ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}
     >
       <h3 className="mb-3 text-sm font-semibold text-slate-100">Recent Activity</h3>
       <div className="h-[540px] space-y-2 overflow-y-auto pr-1">
@@ -434,7 +434,7 @@ const ToastStack = memo(function ToastStack({ toasts, onToastDismiss }) {
             toast.type === 'sla_breach'
               ? 'border-red-500/50 bg-red-500/20 text-red-100'
               : toast.type === 'ticket_resolved'
-                ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-100'
+                ? 'border-[#FF9933]/50 bg-[#FF9933]/20 text-[#FFD699]'
                 : 'border-cyan-500/50 bg-cyan-500/20 text-cyan-100'
           }`}
         >
@@ -445,7 +445,7 @@ const ToastStack = memo(function ToastStack({ toasts, onToastDismiss }) {
               data-toast-id={toast.id}
               onClick={handleToastDismiss}
               aria-label={`Dismiss notification: ${toast.message}`}
-              className="pointer-events-auto rounded px-1 text-xs opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+              className="pointer-events-auto rounded px-1 text-xs opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9]"
             >
               ✕
             </button>
@@ -556,7 +556,7 @@ const TicketRow = memo(function TicketRow({
               rel="noreferrer"
               onClick={handleEvidenceClick}
               aria-label={`Open evidence for ticket ${ticket.ref}`}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/40 text-cyan-300 transition-all duration-200 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/40 text-cyan-300 transition-all duration-200 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9]"
               title="Open evidence"
             >
               ↗
@@ -572,7 +572,7 @@ const TicketRow = memo(function TicketRow({
               onClick={handleResolveButtonClick}
               disabled={isResolving || status === 'resolved'}
               aria-label={`Resolve ticket ${ticket.ref}`}
-              className="rounded-md border border-emerald-500/40 bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 shadow-sm transition-all duration-200 hover:bg-emerald-500/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-[#FF9933]/40 bg-[#FF9933]/20 px-3 py-1 text-xs font-semibold text-[#FFB366] shadow-sm transition-all duration-200 hover:bg-[#FF9933]/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isResolving ? 'Resolving…' : status === 'resolved' ? 'Resolved' : 'Resolve'}
             </button>
@@ -580,7 +580,7 @@ const TicketRow = memo(function TicketRow({
               type="button"
               onClick={handleToggleDetailsClick}
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} details for ticket ${ticket.ref}`}
-              className="rounded-md border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 lg:hidden"
+              className="rounded-md border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9] lg:hidden"
             >
               {isExpanded ? 'Hide' : 'Details'}
             </button>
@@ -651,7 +651,7 @@ const MobileTicketCard = memo(function MobileTicketCard({
           onClick={handleResolveClick}
           disabled={isResolving || status === 'resolved'}
           aria-label={`Resolve ticket ${ticket.ref}`}
-          className="w-full rounded-md border border-emerald-500/40 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:opacity-50"
+          className="w-full rounded-md border border-[#FF9933]/40 bg-[#FF9933]/20 px-3 py-2 text-xs font-semibold text-[#FFB366] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9] disabled:opacity-50"
         >
           {isResolving ? 'Resolving…' : status === 'resolved' ? 'Resolved' : 'Resolve'}
         </button>
@@ -661,7 +661,7 @@ const MobileTicketCard = memo(function MobileTicketCard({
             target="_blank"
             rel="noreferrer"
             aria-label={`Open evidence for ticket ${ticket.ref}`}
-            className="inline-flex w-full items-center justify-center rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+            className="inline-flex w-full items-center justify-center rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A90D9]"
           >
             Evidence
           </a>
@@ -1273,37 +1273,39 @@ export default function Dashboard() {
       <div
         className="relative grid min-h-screen place-items-center p-5 text-slate-100 overflow-hidden"
         style={{
-          backgroundColor: '#080c10',
-          fontFamily: "'DM Sans', sans-serif",
-          background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.08) 0%, #080c10 60%)'
+          backgroundColor: '#0A1628',
+          fontFamily: "'Inter', system-ui, sans-serif",
+          background: 'radial-gradient(ellipse at center, rgba(255,153,51,0.05) 0%, #0A1628 60%)'
         }}
       >
         {/* Subtle animated glow */}
         <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.06) 0%, transparent 50%)',
+          background: 'radial-gradient(circle at 50% 50%, rgba(255,153,51,0.04) 0%, transparent 50%)',
           animation: 'loginGlow 4s ease-in-out infinite alternate'
         }} />
         <div className="relative z-10 w-full max-w-sm">
           {/* Branding */}
           <div className="text-center mb-6">
-            <span className="text-4xl">🗣️</span>
-            <h2 className="text-xl font-bold text-[#f8f5f0] mt-2">JanSamvaad <span className="text-[#10b981]">ResolveOS</span></h2>
-            <p className="text-xs text-[#a3c9aa]/60 mt-1 uppercase tracking-widest">Voice-First Civic Governance</p>
+            <span className="text-3xl">🇮🇳</span>
+            <p className="text-xs text-[#FF9933] mt-2 font-medium">Government of India</p>
+            <h2 className="text-xl font-bold text-white mt-1">JanSamvaad <span className="text-[#E8EDF2] font-normal">ResolveOS</span></h2>
           </div>
           <form
             onSubmit={handleLoginSubmit}
-            className="w-full rounded-xl border border-[#10b981]/20 bg-[#111827]/90 p-6 shadow-xl shadow-[#10b981]/5 backdrop-blur-sm"
-            style={{ boxShadow: '0 0 40px rgba(16,185,129,0.06), 0 25px 50px rgba(0,0,0,0.4)' }}
+            className="w-full rounded-xl border border-[#FF9933]/20 bg-[#1A2F4A]/90 p-6 shadow-xl backdrop-blur-sm"
+            style={{ boxShadow: '0 0 40px rgba(255,153,51,0.04), 0 25px 50px rgba(0,0,0,0.4)' }}
           >
-            <h1 className="mb-1 text-xl font-bold text-white">Operator Login</h1>
-            <p className="mb-4 text-sm text-slate-400">Sign in to access JanSamvaad ResolveOS</p>
+            <h1 lang="hi" className="mb-0.5 text-lg font-bold text-white">अधिकारी लॉगिन</h1>
+            <h2 className="mb-1 text-base font-semibold text-[#E8EDF2]">Operator Login</h2>
+            <p className="mb-4 text-xs text-[#8A9BB5]">Authorised Municipal Personnel Only</p>
             <div className="space-y-3">
               <input
                 type="text"
                 value={loginUsername}
                 onChange={handleLoginUsernameChange}
-                placeholder="Username"
-                className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#10b981]/50 focus:ring-1 focus:ring-[#10b981]/20 transition-all"
+                placeholder="User ID / Username"
+                aria-label="User ID or Username"
+                className="w-full rounded-md border border-white/10 bg-[#0A1628]/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-[#8A9BB5]/50 focus:border-[#FF9933]/50 focus:ring-1 focus:ring-[#FF9933]/20 transition-all"
                 required
               />
               <input
@@ -1311,7 +1313,7 @@ export default function Dashboard() {
                 value={loginPassword}
                 onChange={handleLoginPasswordChange}
                 placeholder="Password"
-                className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#10b981]/50 focus:ring-1 focus:ring-[#10b981]/20 transition-all"
+                className="w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#FF9933]/50 focus:ring-1 focus:ring-[#FF9933]/20 transition-all"
                 required
               />
               {loginError ? (
@@ -1320,13 +1322,15 @@ export default function Dashboard() {
               <button
                 type="submit"
                 disabled={loginSubmitting}
-                className="w-full rounded-md bg-[#10b981] px-3 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-[#059669] active:scale-[0.98] disabled:opacity-60"
+                className="w-full rounded-md bg-[#FF9933] px-3 py-2.5 text-sm font-semibold text-[#0A1628] transition-all duration-200 hover:bg-[#E6841C] active:scale-[0.98] disabled:opacity-60"
+                aria-label="Sign in to portal"
               >
-                {loginSubmitting ? 'Signing in...' : 'Sign in'}
+                {loginSubmitting ? 'Signing in...' : 'Sign In to Portal'}
               </button>
             </div>
+            <p className="text-[10px] text-[#8A9BB5]/50 mt-4 text-center leading-relaxed">🔒 This is a secure Government of India system. Unauthorised access is prohibited under IT Act 2000.</p>
           </form>
-          <p className="text-center mt-4 text-xs text-[#a3c9aa]/30">India Innovates 2026 — Bharat Mandapam, New Delhi</p>
+          <p className="text-center mt-4 text-xs text-[#8A9BB5]/30">© 2026 Government of India | NIC</p>
         </div>
         <style>{`
           @keyframes loginGlow {
@@ -1345,11 +1349,11 @@ export default function Dashboard() {
         <KPICard title="Total Tickets" value={metrics.total} trend={trends.total} accent="text-cyan-300" delayMs={0} />
         <KPICard title="Open" value={metrics.open} trend={trends.open} accent="text-blue-300" delayMs={100} />
         <KPICard title="SLA Breached" value={metrics.breached} trend={trends.breached} accent="text-red-300" delayMs={200} />
-        <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-emerald-300" delayMs={300} />
+        <KPICard title="Resolved Today" value={metrics.resolvedToday} trend={trends.resolvedToday} accent="text-[#FF9933]" delayMs={300} />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+        <div className="rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-lg shadow-black/20">
           <h3 className="mb-3 text-sm font-semibold text-slate-100">Category Breakdown</h3>
           <div className="flex items-center gap-4">
             <div
@@ -1376,7 +1380,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-lg shadow-black/20">
+        <div className="rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-lg shadow-black/20">
           <h3 className="mb-3 text-sm font-semibold text-slate-100">Resolution Rate</h3>
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
             <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
@@ -1385,14 +1389,14 @@ export default function Dashboard() {
             </div>
             <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
               <p className="text-slate-400">Resolved</p>
-              <p className="mt-1 text-xl font-semibold text-emerald-300">{resolutionAnalytics.resolved}</p>
+              <p className="mt-1 text-xl font-semibold text-[#FF9933]">{resolutionAnalytics.resolved}</p>
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-4xl font-bold text-emerald-300">{resolutionAnalytics.resolutionRate}%</p>
+            <p className="text-4xl font-bold text-[#FF9933]">{resolutionAnalytics.resolutionRate}%</p>
             <p className="mt-1 text-xs text-slate-400">Average resolution time: {resolutionAnalytics.averageResolutionHours.toFixed(1)} hours</p>
             <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full rounded-full bg-emerald-400 transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, resolutionAnalytics.resolutionRate))}%` }} />
+              <div className="h-full rounded-full bg-[#FF9933] transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, resolutionAnalytics.resolutionRate))}%` }} />
             </div>
           </div>
         </div>
@@ -1401,7 +1405,7 @@ export default function Dashboard() {
       <SeverityBar tickets={tickets} counts={severityCounts} />
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-xl border border-white/10 bg-[#111827] p-4 shadow-xl shadow-black/30">
+        <div className="rounded-xl border border-white/10 bg-[#1A2F4A] p-4 shadow-xl shadow-black/30">
           <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <h2 className="text-lg font-semibold text-white">Live Ticket Feed</h2>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -1473,7 +1477,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen text-slate-100" style={{ backgroundColor: '#080c10', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen text-slate-100" style={{ backgroundColor: '#0A1628', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <style>{`
         @keyframes rowFlash { 0% { background-color: rgba(250, 204, 21, 0.35); } 100% { background-color: transparent; } }
         @keyframes rowSlide { 0% { transform: translateY(-12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
@@ -1492,17 +1496,17 @@ export default function Dashboard() {
 
       {/* Main content area — offset by sidebar width */}
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[220px]'} pb-20 md:pb-0`}>
-        <header className="flex flex-col gap-3 border-b border-white/5 bg-[#0d1117]/80 backdrop-blur-sm p-4 md:flex-row md:items-center md:justify-between sticky top-0 z-40">
+        <header className="flex flex-col gap-3 border-b border-white/5 bg-[#112240]/80 backdrop-blur-sm p-4 md:flex-row md:items-center md:justify-between sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#10b981]/20 text-[#10b981]">🗣️</div>
+            <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#FF9933]/10 text-lg">🇮🇳</div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#10b981]">Voice-First Civic Governance</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF9933]">Municipal Operations Portal</p>
               <h1 className="text-lg font-bold text-white">JanSamvaad ResolveOS</h1>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${socketLive ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-200' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${socketLive ? 'animate-pulse bg-emerald-300' : 'bg-rose-300'}`} />
+            <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${socketLive ? 'border-[#138808]/50 bg-[#138808]/20 text-[#22AA22]' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${socketLive ? 'animate-pulse bg-[#138808]' : 'bg-rose-300'}`} />
               {socketLive ? 'LIVE' : 'OFFLINE'}
             </div>
             <span className="hidden sm:inline text-xs text-slate-400 font-mono">{formatClock(clock)}</span>

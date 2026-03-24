@@ -43,49 +43,49 @@ export default function Reports({ tickets = [] }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-[#f8f5f0]">Reports</h2>
-        <p className="text-xs text-[#a3c9aa]/50">Summary reports and data exports</p>
+        <h2 className="text-lg font-bold text-[white]">Reports</h2>
+        <p className="text-xs text-[#8A9BB5]/50">Summary reports and data exports</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* This Week */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-6">
-          <h3 className="text-sm font-bold text-[#f8f5f0] mb-4 flex items-center gap-2">
-            <span className="text-[#10b981]">📅</span> This Week
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-6">
+          <h3 className="text-sm font-bold text-[white] mb-4 flex items-center gap-2">
+            <span className="text-[#FF9933]">📅</span> This Week
           </h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">Complaints Filed</span>
-              <span className="text-sm font-bold text-[#f8f5f0]">{thisWeek.length}</span>
+              <span className="text-sm text-[#8A9BB5]/60">Complaints Filed</span>
+              <span className="text-sm font-bold text-[white]">{thisWeek.length}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">Resolved</span>
-              <span className="text-sm font-bold text-[#10b981]">{weekResolved}</span>
+              <span className="text-sm text-[#8A9BB5]/60">Resolved</span>
+              <span className="text-sm font-bold text-[#FF9933]">{weekResolved}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">SLA Breached</span>
+              <span className="text-sm text-[#8A9BB5]/60">SLA Breached</span>
               <span className={`text-sm font-bold ${weekBreached > 0 ? 'text-red-400' : 'text-green-400'}`}>{weekBreached}</span>
             </div>
           </div>
         </div>
 
         {/* This Month */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-6">
-          <h3 className="text-sm font-bold text-[#f8f5f0] mb-4 flex items-center gap-2">
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-6">
+          <h3 className="text-sm font-bold text-[white] mb-4 flex items-center gap-2">
             <span className="text-[#3b82f6]">📅</span> This Month
           </h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">Complaints Filed</span>
-              <span className="text-sm font-bold text-[#f8f5f0]">{thisMonth.length}</span>
+              <span className="text-sm text-[#8A9BB5]/60">Complaints Filed</span>
+              <span className="text-sm font-bold text-[white]">{thisMonth.length}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">Resolved</span>
-              <span className="text-sm font-bold text-[#10b981]">{monthResolved}</span>
+              <span className="text-sm text-[#8A9BB5]/60">Resolved</span>
+              <span className="text-sm font-bold text-[#FF9933]">{monthResolved}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#a3c9aa]/60">SLA Breached</span>
+              <span className="text-sm text-[#8A9BB5]/60">SLA Breached</span>
               <span className={`text-sm font-bold ${monthBreached > 0 ? 'text-red-400' : 'text-green-400'}`}>{monthBreached}</span>
             </div>
           </div>
@@ -94,12 +94,12 @@ export default function Reports({ tickets = [] }) {
 
       {/* Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-[#10b981]/20 bg-[#10b981]/5 p-6">
-          <p className="text-xs text-[#a3c9aa]/50 mb-1">Top Category This Week</p>
-          <p className="text-lg font-bold text-[#10b981] capitalize">{topCat}</p>
+        <div className="rounded-2xl border border-[#FF9933]/20 bg-[#FF9933]/5 p-6">
+          <p className="text-xs text-[#8A9BB5]/50 mb-1">Top Category This Week</p>
+          <p className="text-lg font-bold text-[#FF9933] capitalize">{topCat}</p>
         </div>
         <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
-          <p className="text-xs text-[#a3c9aa]/50 mb-1">Worst Performing Ward</p>
+          <p className="text-xs text-[#8A9BB5]/50 mb-1">Worst Performing Ward</p>
           <p className="text-lg font-bold text-red-400">{worstWard}</p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function Reports({ tickets = [] }) {
         <button onClick={() => window.print()} className="px-6 py-3 rounded-xl bg-[#3b82f6]/20 text-[#3b82f6] font-semibold text-sm border border-[#3b82f6]/30 hover:bg-[#3b82f6]/30 transition-all">
           📄 Download PDF
         </button>
-        <button onClick={() => downloadCSV(tickets)} className="px-6 py-3 rounded-xl bg-[#10b981]/20 text-[#10b981] font-semibold text-sm border border-[#10b981]/30 hover:bg-[#10b981]/30 transition-all">
+        <button onClick={() => downloadCSV(tickets)} className="px-6 py-3 rounded-xl bg-[#FF9933]/20 text-[#FF9933] font-semibold text-sm border border-[#FF9933]/30 hover:bg-[#FF9933]/30 transition-all">
           📥 Download CSV
         </button>
       </div>

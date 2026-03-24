@@ -2,19 +2,19 @@ import Navbar from '../components/Navbar';
 
 export default function Problem() {
   return (
-    <div className="min-h-screen" style={{ background: '#080c10', fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="min-h-screen" style={{ background: '#0A1628', fontFamily: "'Inter', sans-serif" }}>
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-20">
         {/* Header */}
         <div className="text-center mb-16">
           <span className="px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold uppercase tracking-widest">The Problem</span>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#f8f5f0] mt-6">A System That Fails Its People</h1>
-          <p className="text-lg text-[#a3c9aa]/60 mt-4 max-w-2xl mx-auto">Every year, millions of civic complaints go unresolved in India. The system is broken — and the people who suffer most are the ones with the least power to fix it.</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-[white] mt-6">A System That Fails Its People</h1>
+          <p className="text-lg text-[#8A9BB5]/60 mt-4 max-w-2xl mx-auto">Every year, millions of civic complaints go unresolved in India. The system is broken — and the people who suffer most are the ones with the least power to fix it.</p>
         </div>
 
         {/* Farmer Story */}
-        <div className="rounded-3xl border border-white/10 bg-[#0d1117] p-8 mb-12">
-          <h3 className="text-xl font-bold text-[#f8f5f0] mb-6">🌾 Ram Prasad's Story</h3>
+        <div className="rounded-3xl border border-white/10 bg-[#112240] p-8 mb-12">
+          <h3 className="text-xl font-bold text-[white] mb-6">🌾 Ram Prasad's Story</h3>
           <div className="space-y-6">
             {[
               { time: 'Day 1', text: 'Ram Prasad, a farmer in rural Delhi, notices a broken water pipe flooding his field. He walks 5 km to the municipal office.', icon: '🚶' },
@@ -30,7 +30,7 @@ export default function Problem() {
                 </div>
                 <div className="pb-6">
                   <p className="text-xs font-bold text-red-400 mb-1">{s.time}</p>
-                  <p className="text-sm text-[#a3c9aa]/70">{s.text}</p>
+                  <p className="text-sm text-[#8A9BB5]/70">{s.text}</p>
                 </div>
               </div>
             ))}
@@ -45,9 +45,9 @@ export default function Problem() {
             { num: '45 days', label: 'Average Resolution Time', color: 'text-yellow-400' },
             { num: '0%', label: 'Digital Tracking', color: 'text-red-400' },
           ].map(s => (
-            <div key={s.label} className="rounded-2xl border border-white/10 bg-[#0d1117] p-5 text-center">
+            <div key={s.label} className="rounded-2xl border border-white/10 bg-[#112240] p-5 text-center">
               <p className={`text-2xl md:text-3xl font-bold ${s.color}`}>{s.num}</p>
-              <p className="text-xs text-[#a3c9aa]/50 mt-2">{s.label}</p>
+              <p className="text-xs text-[#8A9BB5]/50 mt-2">{s.label}</p>
             </div>
           ))}
         </div>
@@ -61,22 +61,22 @@ export default function Problem() {
           ].map(p => (
             <div key={p.title} className="rounded-2xl border border-red-500/10 bg-red-500/[0.02] p-6">
               <span className="text-2xl">{p.icon}</span>
-              <h4 className="text-sm font-bold text-[#f8f5f0] mt-3">{p.title}</h4>
-              <p className="text-xs text-[#a3c9aa]/50 mt-2">{p.desc}</p>
+              <h4 className="text-sm font-bold text-[white] mt-3">{p.title}</h4>
+              <p className="text-xs text-[#8A9BB5]/50 mt-2">{p.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Before/After */}
-        <div className="rounded-3xl border border-white/10 bg-[#0d1117] p-8">
-          <h3 className="text-lg font-bold text-[#f8f5f0] mb-6 text-center">Before vs After</h3>
+        <div className="rounded-3xl border border-white/10 bg-[#112240] p-8">
+          <h3 className="text-lg font-bold text-[white] mb-6 text-center">Before vs After</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="py-3 px-4 text-left text-xs uppercase text-[#a3c9aa]/50">Aspect</th>
+                  <th className="py-3 px-4 text-left text-xs uppercase text-[#8A9BB5]/50">Aspect</th>
                   <th className="py-3 px-4 text-left text-xs uppercase text-red-400">Before</th>
-                  <th className="py-3 px-4 text-left text-xs uppercase text-[#10b981]">After (JanSamvaad)</th>
+                  <th className="py-3 px-4 text-left text-xs uppercase text-[#FF9933]">After (JanSamvaad)</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,9 +89,9 @@ export default function Problem() {
                   ['Cost', '₹500+ (travel + time)', '₹0 — voice call is free'],
                 ].map(([aspect, before, after]) => (
                   <tr key={aspect} className="border-b border-white/5">
-                    <td className="py-3 px-4 text-[#f8f5f0] font-medium">{aspect}</td>
+                    <td className="py-3 px-4 text-[white] font-medium">{aspect}</td>
                     <td className="py-3 px-4 text-red-400/70">{before}</td>
-                    <td className="py-3 px-4 text-[#10b981]">{after}</td>
+                    <td className="py-3 px-4 text-[#FF9933]">{after}</td>
                   </tr>
                 ))}
               </tbody>
