@@ -22,7 +22,7 @@ function generateEvidenceHash(seed) {
 }
 
 function buildEvidenceUploadUrl(hash) {
-  const evidenceBaseUrl = process.env.EVIDENCE_BASE_URL || process.env.APP_BASE_URL || 'http://localhost:3000';
+  const evidenceBaseUrl = process.env.EVIDENCE_BASE_URL || process.env.APP_BASE_URL || process.env.VITE_API_URL;
   return `${evidenceBaseUrl.replace(/\/$/, '')}/evidence/${hash}`;
 }
 
@@ -129,7 +129,7 @@ router.post('/api/tickets/:id/resolve', authenticateToken, async (req, res) => {
     
     try {
       if (twilioClient && twilioFromNumber) {
-        const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+        const appBaseUrl = process.env.APP_BASE_URL || process.env.VITE_API_URL;
         const resolutionCardUrl = `${appBaseUrl.replace(/\/$/, '')}/card/${resolutionHash}`;
         
         await twilioClient.messages.create({
