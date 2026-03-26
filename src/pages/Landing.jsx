@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
-const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 /* ─── Animated count-up with Intersection Observer ─── */
 function useScrollAnimatedNumber(target, duration = 1200) {
