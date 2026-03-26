@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-const API = 'https://jansamvaad-backend-608936922611.us-central1.run.app';
+const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
 
 export default function QRScanner() {
   const [ref, setRef] = useState('');

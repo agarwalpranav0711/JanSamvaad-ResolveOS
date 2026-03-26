@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 
-const API = 'https://jansamvaad-backend-608936922611.us-central1.run.app';
+const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
 
 export default function Demo() {
   const [count, setCount] = useState(0);

@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import Navbar from '../components/Navbar';
 
-const API = 'https://jansamvaad-backend-608936922611.us-central1.run.app';
+const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
 
 /* Government chart palette */
 const CHART_COLORS = ['#FF9933', '#1A2F4A', '#138808', '#C8A951', '#4A90D9', '#CC0000', '#8A9BB5', '#E6841C'];

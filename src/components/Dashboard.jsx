@@ -11,7 +11,7 @@ import QRScanner from './pages/QRScanner';
 import SettingsPage from './pages/Settings';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
-const API = 'https://jansamvaad-backend-608936922611.us-central1.run.app';
+const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
 
 const SEVERITY_CLASS_MAP = {
   CRITICAL: 'bg-[#CC0000]/20 text-[#FF4444] border border-[#CC0000]/30',
