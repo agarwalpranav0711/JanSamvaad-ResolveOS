@@ -1,14 +1,14 @@
 import { useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 
-const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API = 'https://jansamvaad-backend-608936922611.us-central1.run.app';
 
 /* ─── Severity colors ─── */
 const SEV = {
-  CRITICAL: { bg: 'bg-red-500/15', text: 'text-red-300', label: 'CRITICAL' },
-  HIGH:     { bg: 'bg-orange-500/15', text: 'text-orange-300', label: 'HIGH' },
-  MEDIUM:   { bg: 'bg-yellow-500/15', text: 'text-yellow-300', label: 'MEDIUM' },
-  LOW:      { bg: 'bg-green-500/15', text: 'text-green-300', label: 'LOW' },
+  CRITICAL: { bg: 'bg-[#CC0000]/15', text: 'text-[#FF4444]', label: 'CRITICAL' },
+  HIGH:     { bg: 'bg-[#FF9933]/15', text: 'text-[#FF9933]', label: 'HIGH' },
+  MEDIUM:   { bg: 'bg-[#C8A951]/15', text: 'text-[#C8A951]', label: 'MEDIUM' },
+  LOW:      { bg: 'bg-[#138808]/15', text: 'text-[#22AA22]', label: 'LOW' },
 };
 
 /* ─── Status step index ─── */
@@ -17,7 +17,7 @@ function statusStep(status) {
   if (s === 'closed' || s === 'resolved') return 4;
   if (s === 'in_progress' || s === 'in progress') return 3;
   if (s === 'assigned') return 2;
-  return 1; // open / registered
+  return 1;
 }
 
 /* ─── Format date ─── */
@@ -31,11 +31,11 @@ function fmt(iso) {
 function slaCountdown(deadline) {
   if (!deadline) return null;
   const ms = new Date(deadline) - Date.now();
-  if (ms <= 0) return { text: 'BREACHED', color: 'text-red-400' };
+  if (ms <= 0) return { text: 'BREACHED', color: 'text-[#CC0000]' };
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
-  if (h < 6) return { text: `${h}h ${m}m remaining`, color: 'text-orange-400' };
-  return { text: `${h}h ${m}m remaining`, color: 'text-[#10b981]' };
+  if (h < 6) return { text: `${h}h ${m}m remaining`, color: 'text-[#FF9933]' };
+  return { text: `${h}h ${m}m remaining`, color: 'text-[#138808]' };
 }
 
 /* ─── Star Rating ─── */
@@ -48,8 +48,9 @@ function StarRating({ rating, onRate, disabled }) {
           type="button"
           disabled={disabled}
           onClick={() => onRate(star)}
+          aria-label={`Rate ${star} stars`}
           className={`text-2xl transition-all duration-200 ${
-            star <= rating ? 'text-yellow-400 scale-110' : 'text-white/20 hover:text-yellow-400/50'
+            star <= rating ? 'text-[#FF9933] scale-110' : 'text-white/20 hover:text-[#FF9933]/50'
           } ${disabled ? 'cursor-not-allowed' : 'cursor-pointer active:scale-125'}`}
         >
           ★
@@ -68,23 +69,23 @@ function TimelineStep({ step, current, label, detail, time, isLast }) {
       <div className="flex flex-col items-center">
         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
           done
-            ? 'border-[#10b981] bg-[#10b981]'
+            ? 'border-[#138808] bg-[#138808]'
             : active
-              ? 'border-[#10b981] bg-transparent animate-pulse'
+              ? 'border-[#FF9933] bg-transparent animate-pulse'
               : 'border-white/20 bg-transparent'
         }`}>
-          {done && <span className="text-[8px] text-black font-bold">✓</span>}
+          {done && <span className="text-[8px] text-white font-bold">✓</span>}
         </div>
         {!isLast && (
           <div className={`w-0.5 flex-1 min-h-[40px] transition-all duration-500 ${
-            done ? 'bg-[#10b981]/40' : 'bg-white/10'
+            done ? 'bg-[#138808]/40' : 'bg-white/10'
           }`} />
         )}
       </div>
       <div className="pb-6">
-        <p className={`text-sm font-semibold ${done ? 'text-[#f8f5f0]' : 'text-white/30'}`}>{label}</p>
-        {detail && <p className="text-xs text-[#a3c9aa]/60 mt-0.5">{detail}</p>}
-        {time && <p className="text-xs text-[#a3c9aa]/40 mt-0.5">{time}</p>}
+        <p className={`text-sm font-semibold ${done ? 'text-white' : 'text-white/30'}`}>{label}</p>
+        {detail && <p className="text-xs text-[#8A9BB5] mt-0.5">{detail}</p>}
+        {time && <p className="text-xs text-[#8A9BB5]/60 mt-0.5">{time}</p>}
       </div>
     </div>
   );
@@ -150,64 +151,78 @@ export default function Track() {
   const sla = ticket ? slaCountdown(ticket.sla_deadline) : null;
 
   return (
-    <div className="min-h-screen bg-[#080c10] text-[#f8f5f0]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="min-h-screen bg-[#0A1628] text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <Navbar />
 
       <div className="pt-24 pb-16 px-4 max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-            Track Your <span className="text-[#10b981]">Complaint</span>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            <span lang="hi" className="text-[#FF9933]">शिकायत की स्थिति जांचें</span>
+            <span className="block text-lg sm:text-xl font-normal text-[#E8EDF2] mt-1">Track Grievance Status</span>
           </h1>
-          <p className="text-[#a3c9aa]/60 text-sm">Enter your ticket reference number to check real-time status</p>
+          <p className="text-[#8A9BB5] text-sm">Enter your unique Grievance Reference Number to view real-time status</p>
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-3 max-w-xl mx-auto mb-12">
-          <input
-            type="text"
-            value={ref}
-            onChange={(e) => setRef(e.target.value)}
-            placeholder="Enter your Ticket Reference (e.g. GRV-XXXXXX)"
-            className="flex-1 px-4 py-3 rounded-xl bg-[#0d1117] border border-white/10 text-sm text-[#f8f5f0] placeholder:text-[#a3c9aa]/30 outline-none focus:border-[#10b981]/40 transition-all"
-          />
-          <button
-            type="submit"
-            disabled={loading || !ref.trim()}
-            className="px-6 py-3 rounded-xl bg-[#10b981] text-black font-semibold text-sm hover:bg-[#059669] disabled:opacity-40 transition-all active:scale-95"
-          >
-            {loading ? '...' : 'Search'}
-          </button>
-        </form>
+        <div className="rounded-xl bg-white/[0.03] border border-white/10 p-6 mb-6">
+          <label className="block text-xs text-[#8A9BB5] mb-2 font-medium">
+            Grievance Reference Number / शिकायत संदर्भ संख्या
+          </label>
+          <form onSubmit={handleSearch} className="flex gap-3">
+            <input
+              type="text"
+              value={ref}
+              onChange={(e) => setRef(e.target.value)}
+              placeholder="e.g. JS-G7H8I9"
+              className="flex-1 px-4 py-3 rounded-lg bg-[#112240] border border-white/10 text-sm text-white placeholder:text-[#8A9BB5]/50 outline-none focus:border-[#FF9933]/50 transition-all"
+              aria-label="Grievance reference number"
+            />
+            <button
+              type="submit"
+              disabled={loading || !ref.trim()}
+              className="px-6 py-3 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] disabled:opacity-40 transition-all active:scale-95"
+              aria-label="Search for grievance"
+            >
+              {loading ? '...' : 'Search / खोजें'}
+            </button>
+          </form>
+          <p className="text-xs text-[#8A9BB5]/50 mt-3">
+            Your reference number was provided via SMS when you registered your complaint.
+            Try sample references: <span className="text-[#4A90D9]">JS-A1B2C3 | JS-D4E5F6 | JS-E4F5G6</span>
+          </p>
+        </div>
 
         {/* Loading */}
         {loading && (
           <div className="text-center py-16">
-            <svg className="animate-spin h-8 w-8 text-[#10b981] mx-auto mb-4" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-[#FF9933] mx-auto mb-4" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            <p className="text-sm text-[#a3c9aa]/50">Looking up your complaint...</p>
+            <p className="text-sm text-[#8A9BB5]">Looking up your grievance...</p>
           </div>
         )}
 
         {/* Error: Not Found */}
         {error === 'not_found' && (
-          <div className="text-center py-12 px-6 rounded-2xl border border-white/5 bg-[#0d1117]">
+          <div className="text-center py-12 px-6 rounded-xl border border-white/10 bg-[#112240]">
             <p className="text-4xl mb-4">🔍</p>
-            <h3 className="text-xl font-bold text-[#f8f5f0] mb-2">Ticket not found / टिकट नहीं मिला</h3>
-            <p className="text-sm text-[#a3c9aa]/50 mb-1">Check your reference number and try again</p>
-            <p className="text-sm text-[#a3c9aa]/50 mb-4">अपना संदर्भ नंबर जांचें और पुनः प्रयास करें</p>
-            <p className="text-xs text-[#a3c9aa]/30">For help, call: <a href="tel:+15706308042" className="text-[#10b981] hover:underline">+1 570 630 8042</a></p>
+            <h3 lang="hi" className="text-xl font-bold text-white mb-1">शिकायत नहीं मिली</h3>
+            <h3 className="text-lg font-semibold text-[#E8EDF2] mb-3">Grievance Not Found</h3>
+            <p className="text-sm text-[#8A9BB5] mb-1">Please verify your reference number and try again</p>
+            <p lang="hi" className="text-sm text-[#8A9BB5] mb-4">कृपया अपना संदर्भ नंबर जांचें और पुनः प्रयास करें</p>
+            <p className="text-xs text-[#8A9BB5]/60">For assistance, call: <a href="tel:+15706308042" className="text-[#4A90D9] hover:underline">+1 570 630 8042</a></p>
           </div>
         )}
 
         {/* Error: Server */}
         {error === 'server' && (
-          <div className="text-center py-12 px-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/5">
+          <div className="text-center py-12 px-6 rounded-xl border border-[#CC0000]/20 bg-[#CC0000]/5">
             <p className="text-4xl mb-4">⚠️</p>
-            <h3 className="text-lg font-bold text-yellow-300 mb-2">Server error / सर्वर त्रुटि</h3>
-            <p className="text-sm text-[#a3c9aa]/50">Please try again in a moment</p>
+            <h3 lang="hi" className="text-lg font-bold text-[#FF4444] mb-1">सर्वर त्रुटि</h3>
+            <h3 className="text-base font-semibold text-[#E8EDF2] mb-2">Server Error</h3>
+            <p className="text-sm text-[#8A9BB5]">Please try again. If the problem persists, call: <a href="tel:+15706308042" className="text-[#4A90D9] hover:underline">+1 570 630 8042</a></p>
           </div>
         )}
 
@@ -215,8 +230,8 @@ export default function Track() {
         {!loading && !error && !ticket && (
           <div className="text-center py-16">
             <p className="text-5xl mb-4">🔎</p>
-            <p className="text-sm text-[#a3c9aa]/40">Enter your ticket reference above to begin tracking</p>
-            <p className="text-xs text-[#a3c9aa]/30 mt-1">अपना टिकट ट्रैक करने के लिए ऊपर संदर्भ नंबर दर्ज करें</p>
+            <p className="text-sm text-[#8A9BB5]">Enter your grievance reference number above to begin tracking</p>
+            <p lang="hi" className="text-xs text-[#8A9BB5]/60 mt-1">अपनी शिकायत ट्रैक करने के लिए ऊपर संदर्भ नंबर दर्ज करें</p>
           </div>
         )}
 
@@ -225,46 +240,60 @@ export default function Track() {
           <div className="space-y-6 animate-fadeIn">
 
             {/* Summary Card */}
-            <div className="rounded-2xl border border-white/10 bg-[#0d1117] p-6">
+            <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <p className="text-xs text-[#8A9BB5] uppercase tracking-widest">Grievance Reference</p>
+                <p className="text-xs text-[#8A9BB5] uppercase tracking-widest">Status</p>
+              </div>
               <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <div>
-                  <p className="text-2xl sm:text-3xl font-bold text-[#10b981] font-mono">{ticket.ref}</p>
-                  <p className="text-xs text-[#a3c9aa]/40 mt-1">Filed {fmt(ticket.created_at)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${sev.bg} ${sev.text}`}>
-                    {sev.label}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    isResolved ? 'bg-emerald-500/15 text-emerald-300' : 'bg-blue-500/15 text-blue-300'
-                  }`}>
-                    {isResolved ? '✅ RESOLVED' : '🔄 ' + (ticket.status || 'OPEN').toUpperCase()}
-                  </span>
-                </div>
+                <p className="text-2xl sm:text-3xl font-bold text-[#FF9933] font-mono">{ticket.ref}</p>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  isResolved ? 'bg-[#138808]/15 text-[#22AA22]' : 'bg-[#4A90D9]/15 text-[#4A90D9]'
+                }`}>
+                  {isResolved ? '✅ RESOLVED' : '🔄 ' + (ticket.status || 'OPEN').toUpperCase()}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <span className="text-xs text-[#a3c9aa]/40 block mb-1">Category / Department</span>
-                  <span className="text-[#f8f5f0] font-medium capitalize">{ticket.category || '—'}</span>
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-xs text-[#8A9BB5]/60 block mb-1">Filed By</span>
+                  <span className="text-white font-medium">{ticket.phone || '—'}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <span className="text-xs text-[#a3c9aa]/40 block mb-1">Ward</span>
-                  <span className="text-[#f8f5f0] font-medium">{ticket.ward_name || '—'}</span>
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-xs text-[#8A9BB5]/60 block mb-1">Ward</span>
+                  <span className="text-white font-medium">{ticket.ward_name || '—'}</span>
                 </div>
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-xs text-[#8A9BB5]/60 block mb-1">Category / Department</span>
+                  <span className="text-white font-medium capitalize">{ticket.category || '—'}</span>
+                </div>
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-xs text-[#8A9BB5]/60 block mb-1">Severity</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${sev.bg} ${sev.text}`}>{sev.label}</span>
+                </div>
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-xs text-[#8A9BB5]/60 block mb-1">Registered</span>
+                  <span className="text-white text-xs">{fmt(ticket.created_at)}</span>
+                </div>
+                {isResolved && (
+                  <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                    <span className="text-xs text-[#8A9BB5]/60 block mb-1">Resolved</span>
+                    <span className="text-[#22AA22] text-xs">{fmt(ticket.closed_at)}</span>
+                  </div>
+                )}
                 {!isResolved && sla && (
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 sm:col-span-2">
-                    <span className="text-xs text-[#a3c9aa]/40 block mb-1">SLA Deadline</span>
+                  <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                    <span className="text-xs text-[#8A9BB5]/60 block mb-1">SLA Deadline</span>
                     <span className={`font-bold ${sla.color}`}>{sla.text}</span>
-                    <span className="text-xs text-[#a3c9aa]/30 ml-2">({fmt(ticket.sla_deadline)})</span>
+                    <span className="text-xs text-[#8A9BB5]/40 ml-2">({fmt(ticket.sla_deadline)})</span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* ─── Resolution Timeline ─── */}
-            <div className="rounded-2xl border border-white/10 bg-[#0d1117] p-6">
-              <h3 className="text-sm font-semibold text-[#f8f5f0] mb-6">Resolution Timeline</h3>
+            <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
+              <h3 className="text-sm font-semibold text-white mb-6">Resolution Timeline</h3>
               <TimelineStep step={1} current={step} label="Registered" detail="Complaint received via voice call" time={fmt(ticket.created_at)} />
               <TimelineStep step={2} current={step} label="AI Classified" detail={ticket.category ? `Category: ${ticket.category} • Severity: ${(ticket.severity || '').toUpperCase()}` : null} time={step >= 2 ? fmt(ticket.created_at) : null} />
               <TimelineStep step={3} current={step} label="Assigned to Ward" detail={ticket.ward_name ? `${ticket.ward_name} — ${ticket.category || 'General'} Department` : null} />
@@ -274,33 +303,33 @@ export default function Track() {
 
             {/* ─── RESOLVED: Proof + Rating ─── */}
             {isResolved && (
-              <div className="rounded-2xl border border-[#10b981]/20 bg-[#10b981]/5 p-6 text-center">
-                <div className="text-5xl mb-4 animate-bounce-slow">✅</div>
-                <h3 className="text-xl font-bold text-[#10b981] mb-2">Your complaint has been resolved</h3>
-                <p className="text-sm text-[#a3c9aa]/50 mb-6">शिकायत का समाधान हो गया है</p>
+              <div className="rounded-xl border border-[#138808]/20 bg-[#138808]/5 p-6 text-center">
+                <div className="text-5xl mb-4">✅</div>
+                <h3 className="text-xl font-bold text-[#138808] mb-1">Your grievance has been resolved</h3>
+                <p lang="hi" className="text-sm text-[#8A9BB5] mb-6">शिकायत का समाधान हो गया है</p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-6">
                   <div>
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticket.ref)}`}
-                      alt="Resolution QR Code"
+                      alt="Resolution Verification QR Code"
                       className="rounded-lg border border-white/10 mx-auto"
                       width={160}
                       height={160}
                     />
-                    <p className="text-xs text-[#a3c9aa]/40 mt-2">Resolution Verification QR</p>
+                    <p className="text-xs text-[#8A9BB5]/60 mt-2">Resolution Verification QR</p>
                   </div>
                   <div>
-                    <p className="text-sm text-[#f8f5f0] mb-3 font-medium">Rate your experience</p>
+                    <p className="text-sm text-white mb-3 font-medium">Rate your experience</p>
                     <StarRating rating={rating} onRate={handleFeedback} disabled={feedbackSent || feedbackLoading} />
                     {feedbackSent && (
-                      <p className="text-xs text-[#10b981] mt-2 animate-fadeIn">Thank you for your feedback! 🙏</p>
+                      <p className="text-xs text-[#138808] mt-2 animate-fadeIn">Thank you for your feedback! 🙏</p>
                     )}
                     <a
                       href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(ticket.ref)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block mt-4 px-4 py-2 rounded-lg border border-white/10 text-xs text-[#a3c9aa]/60 hover:bg-white/5 transition-all"
+                      className="inline-block mt-4 px-4 py-2 rounded-lg border border-white/10 text-xs text-[#8A9BB5] hover:bg-white/5 transition-all"
                     >
                       📥 Download Resolution Certificate
                     </a>
@@ -312,12 +341,11 @@ export default function Track() {
         )}
       </div>
 
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
-        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
-      `}</style>
+      {/* Footer */}
+      <footer className="border-t border-[#FF9933]/10 bg-[#071020] py-6 px-6 text-center">
+        <p className="text-xs text-[#8A9BB5]">© 2026 JanSamvaad ResolveOS | Government of India</p>
+        <p className="text-xs text-[#8A9BB5]/50 mt-1">Powered by National Informatics Centre (NIC)</p>
+      </footer>
     </div>
   );
 }

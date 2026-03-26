@@ -14,9 +14,28 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  'https://jansamvaad-resolveos.vercel.app',
+  'https://jansamvaad-resolveos.vercel.app.',
+  'http://localhost:5173'
+];
+
+function resolveCorsOrigin(origin, callback) {
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+  if (allowedOrigins.includes(origin)) {
+    callback(null, true);
+    return;
+  }
+  callback(new Error('Not allowed by CORS'));
+}
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173'
+    origin: allowedOrigins,
+    credentials: true
   }
 });
 
@@ -29,7 +48,10 @@ const authRouter = require('./src/api/auth');
 const dashboardRouter = require('./src/api/dashboard');
 const evidenceRouter = require('./src/api/evidence');
 
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173' }));
+app.use(cors({
+  origin: resolveCorsOrigin,
+  credentials: true
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use((req, res, next) => {
@@ -40,11 +62,23 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  try {
+    await pool.query('SELECT 1');
+    dbStatus = 'connected';
+  } catch (_) { /* ignore */ }
+
   res.json({
     status: 'ok',
-    uptime: process.uptime(),
-    timestamp: Date.now()
+    uptime: parseFloat(process.uptime().toFixed(2)),
+    timestamp: Date.now(),
+    version: '1.0.0',
+    services: {
+      database: dbStatus,
+      gemini: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY ? 'configured' : 'not_configured',
+      twilio: process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN ? 'configured' : 'not_configured'
+    }
   });
 });
 
@@ -92,12 +126,16 @@ async function runSlaBreachAlerts() {
         continue;
       }
 
-      await transporter.sendMail({
-        from: smtpUser,
-        to: alertEmail,
-        subject: `SLA Breach Alert: Ticket ${ticket.ref}`,
-        text: `Ticket ${ticket.ref} is approaching SLA breach.\nCategory: ${ticket.category}\nSeverity: ${ticket.severity}\nDeadline: ${ticket.sla_deadline}`
-      });
+      try {
+        await transporter.sendMail({
+          from: smtpUser,
+          to: alertEmail,
+          subject: `SLA Breach Alert: Ticket ${ticket.ref}`,
+          text: `Ticket ${ticket.ref} is approaching SLA breach.\nCategory: ${ticket.category}\nSeverity: ${ticket.severity}\nDeadline: ${ticket.sla_deadline}`
+        });
+      } catch (emailError) {
+        logger.warn({ err: emailError, ticketRef: ticket.ref }, 'Email notification failed — SMTP unreachable, skipping');
+      }
     }
   } catch (error) {
     logger.error({ err: error }, 'SLA breach cron failed');
@@ -105,15 +143,49 @@ async function runSlaBreachAlerts() {
 }
 
 let cronTask = null;
+let escalationCronTask = null;
 if (process.env.ENABLE_SLA_CRON !== 'false' && process.env.NODE_ENV !== 'test') {
   cronTask = cron.schedule('0 * * * *', () => {
     runSlaBreachAlerts();
+  });
+
+  // Auto-escalation: escalate stale open tickets to High severity (Polish 2)
+  escalationCronTask = cron.schedule('30 * * * *', async () => {
+    try {
+      const { rows } = await pool.query(
+        `UPDATE tickets
+         SET severity = 'High'
+         WHERE status = 'open'
+           AND severity != 'High'
+           AND created_at < NOW() - INTERVAL '24 hours'
+         RETURNING id, ref, category, severity, status, sla_deadline, created_at`
+      );
+      if (rows.length > 0) {
+        logger.info({ count: rows.length }, 'Auto-escalated stale tickets to High severity');
+        for (const ticket of rows) {
+          io.emit('ticket_escalated', ticket);
+        }
+      }
+    } catch (error) {
+      logger.warn({ err: error }, 'Auto-escalation cron failed');
+    }
   });
 }
 
 function startServer() {
   return server.listen(PORT, () => {
     logger.info({ port: PORT }, 'JanSamvaad ResolveOS server listening');
+
+    // Pre-warm Gemini AI on startup (Reliability 1)
+    setTimeout(async () => {
+      try {
+        const { extractIntent } = require('./src/services/llm');
+        await extractIntent('test complaint water leak');
+        logger.info('Gemini AI pre-warmed successfully');
+      } catch (e) {
+        logger.warn({ err: e }, 'Gemini pre-warm failed — will retry on first real call');
+      }
+    }, 5000);
   });
 }
 

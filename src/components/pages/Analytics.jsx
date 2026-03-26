@@ -4,12 +4,12 @@ import {
   LineChart, Line, Legend, Cell
 } from 'recharts';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = ['#FF9933', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#1a1f2e] border border-white/10 rounded-lg px-4 py-3 text-xs text-[#f8f5f0] shadow-xl">
+    <div className="bg-[#1a1f2e] border border-white/10 rounded-lg px-4 py-3 text-xs text-[white] shadow-xl">
       <p className="font-semibold mb-1">{label}</p>
       {payload.map((p, i) => <p key={i} style={{ color: p.color }}>{p.name}: {p.value}</p>)}
     </div>
@@ -32,9 +32,9 @@ function useAnim(val, dur = 800) {
 function KPICard({ label, value, suffix, icon, color }) {
   const a = useAnim(value);
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5 hover:border-[#10b981]/20 transition-all group">
+    <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5 hover:border-[#FF9933]/20 transition-all group">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs uppercase tracking-widest text-[#a3c9aa]/50">{label}</span>
+        <span className="text-xs uppercase tracking-widest text-[#8A9BB5]/50">{label}</span>
         <span className="text-xl opacity-30 group-hover:opacity-60 transition-opacity">{icon}</span>
       </div>
       <p className={`text-3xl font-bold ${color}`}>{a.toLocaleString()}{suffix || ''}</p>
@@ -114,26 +114,26 @@ export default function Analytics({ tickets = [] }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-[#f8f5f0]">Analytics Dashboard</h2>
-        <p className="text-xs text-[#a3c9aa]/50">Deep insights from complaint data</p>
+        <h2 className="text-lg font-bold text-[white]">Analytics Dashboard</h2>
+        <p className="text-xs text-[#8A9BB5]/50">Deep insights from complaint data</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard label="Total Tickets" value={total} icon="📋" color="text-[#f8f5f0]" />
-        <KPICard label="Resolution Rate" value={rate} suffix="%" icon="✅" color="text-[#10b981]" />
+        <KPICard label="Total Tickets" value={total} icon="📋" color="text-[white]" />
+        <KPICard label="Resolution Rate" value={rate} suffix="%" icon="✅" color="text-[#FF9933]" />
         <KPICard label="Avg Resolution" value={avgTime || 12} suffix="h" icon="⏱️" color="text-[#3b82f6]" />
         <KPICard label="SLA Compliance" value={slaPct} suffix="%" icon="🛡️" color="text-[#f59e0b]" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5">
-          <h3 className="text-sm font-semibold text-[#f8f5f0] mb-4">Category Breakdown</h3>
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5">
+          <h3 className="text-sm font-semibold text-[white] mb-4">Category Breakdown</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={catData.slice(0, 8)} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#a3c9aa80' }} axisLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#a3c9aa80' }} axisLine={false} width={80} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#8A9BB580' }} axisLine={false} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" name="Complaints" radius={[0, 6, 6, 0]}>
                   {catData.slice(0, 8).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
@@ -143,30 +143,30 @@ export default function Analytics({ tickets = [] }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5">
-          <h3 className="text-sm font-semibold text-[#f8f5f0] mb-4">Monthly Trend</h3>
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5">
+          <h3 className="text-sm font-semibold text-[white] mb-4">Monthly Trend</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#a3c9aa80' }} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#a3c9aa80' }} axisLine={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Line type="monotone" dataKey="filed" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} name="Filed" />
-                <Line type="monotone" dataKey="resolved" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Resolved" />
+                <Line type="monotone" dataKey="resolved" stroke="#FF9933" strokeWidth={2} dot={{ r: 3 }} name="Resolved" />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5">
-        <h3 className="text-sm font-semibold text-[#f8f5f0] mb-4">Ward Performance Heatmap</h3>
+      <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5">
+        <h3 className="text-sm font-semibold text-[white] mb-4">Ward Performance Heatmap</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-xs uppercase text-[#a3c9aa]/50 tracking-widest">
+              <tr className="border-b border-white/10 text-xs uppercase text-[#8A9BB5]/50 tracking-widest">
                 <th className="pb-2 pr-4 text-left">Ward</th>
                 <th className="pb-2 px-4 text-center">Open</th>
                 <th className="pb-2 px-4 text-center">Resolved</th>
@@ -176,9 +176,9 @@ export default function Analytics({ tickets = [] }) {
             <tbody>
               {wardData.map(w => (
                 <tr key={w.ward} className="border-b border-white/5">
-                  <td className="py-2.5 pr-4 text-[#f8f5f0] font-medium">{w.ward}</td>
+                  <td className="py-2.5 pr-4 text-[white] font-medium">{w.ward}</td>
                   <td className={`py-2.5 px-4 text-center rounded ${heatColor(w.open, maxOpen)}`}>{w.open}</td>
-                  <td className="py-2.5 px-4 text-center text-emerald-300">{w.resolved}</td>
+                  <td className="py-2.5 px-4 text-center text-[#22AA22]">{w.resolved}</td>
                   <td className={`py-2.5 px-4 text-center rounded ${heatColor(w.breached, maxBreached)}`}>{w.breached}</td>
                 </tr>
               ))}
@@ -188,14 +188,14 @@ export default function Analytics({ tickets = [] }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5">
-          <h3 className="text-sm font-semibold text-[#f8f5f0] mb-4">Resolution Time Distribution</h3>
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5">
+          <h3 className="text-sm font-semibold text-[white] mb-4">Resolution Time Distribution</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={histData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-                <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#a3c9aa80' }} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#a3c9aa80' }} axisLine={false} />
+                <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" name="Tickets" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -203,16 +203,16 @@ export default function Analytics({ tickets = [] }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-5">
-          <h3 className="text-sm font-semibold text-[#f8f5f0] mb-4">Top 5 Complaint Categories</h3>
+        <div className="rounded-2xl border border-white/10 bg-[#112240]/80 p-5">
+          <h3 className="text-sm font-semibold text-[white] mb-4">Top 5 Complaint Categories</h3>
           <div className="space-y-3">
             {top5.map((cat, i) => (
               <div key={cat.name} className="flex items-center gap-3">
-                <span className="text-sm font-bold text-[#a3c9aa]/40 w-5">#{i + 1}</span>
+                <span className="text-sm font-bold text-[#8A9BB5]/40 w-5">#{i + 1}</span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-[#f8f5f0] capitalize">{cat.name}</span>
-                    <span className="text-xs text-[#a3c9aa]/50">{cat.value}</span>
+                    <span className="text-sm text-[white] capitalize">{cat.name}</span>
+                    <span className="text-xs text-[#8A9BB5]/50">{cat.value}</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(cat.value / (top5[0]?.value || 1)) * 100}%`, background: COLORS[i] }} />

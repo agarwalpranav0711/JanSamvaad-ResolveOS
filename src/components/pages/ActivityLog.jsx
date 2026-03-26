@@ -64,20 +64,20 @@ export default function ActivityLog({ socket, tickets = [] }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#f8f5f0]">Activity Log</h2>
-          <p className="text-xs text-[#a3c9aa]/50">Real-time event stream</p>
+          <h2 className="text-lg font-bold text-[white]">Activity Log</h2>
+          <p className="text-xs text-[#8A9BB5]/50">Real-time event stream</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSoundOn(!soundOn)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 ${
-              soundOn ? 'bg-[#10b981]/20 text-[#10b981] border-[#10b981]/30' : 'bg-white/[0.03] text-[#a3c9aa]/50 border-white/10'
+              soundOn ? 'bg-[#FF9933]/20 text-[#FF9933] border-[#FF9933]/30' : 'bg-white/[0.03] text-[#8A9BB5]/50 border-white/10'
             }`}
           >
             {soundOn ? '🔔 Sound On' : '🔇 Sound Off'}
           </button>
-          <span className="flex items-center gap-1.5 text-xs text-[#10b981]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" /> Live
+          <span className="flex items-center gap-1.5 text-xs text-[#FF9933]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" /> Live
           </span>
         </div>
       </div>
@@ -90,8 +90,8 @@ export default function ActivityLog({ socket, tickets = [] }) {
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
               filter === f
-                ? 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30'
-                : 'bg-white/[0.03] text-[#a3c9aa]/50 border border-white/5 hover:bg-white/[0.06]'
+                ? 'bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30'
+                : 'bg-white/[0.03] text-[#8A9BB5]/50 border border-white/5 hover:bg-white/[0.06]'
             }`}
           >
             {f}
@@ -102,20 +102,20 @@ export default function ActivityLog({ socket, tickets = [] }) {
       {/* Event Stream */}
       <div
         ref={scrollRef}
-        className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-4 space-y-2 overflow-y-auto"
+        className="rounded-2xl border border-white/10 bg-[#112240]/80 p-4 space-y-2 overflow-y-auto"
         style={{ height: 'calc(100vh - 280px)' }}
       >
         {filtered.length === 0 && (
-          <p className="text-sm text-[#a3c9aa]/30 text-center py-12">No events yet...</p>
+          <p className="text-sm text-[#8A9BB5]/30 text-center py-12">No events yet...</p>
         )}
         {filtered.map(ev => (
           <div key={ev.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-200">
             <span className="text-lg flex-shrink-0 mt-0.5">{EVENT_ICONS[ev.type] || '•'}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-[#f8f5f0]">{ev.message}</p>
+              <p className="text-sm text-[white]">{ev.message}</p>
               <div className="flex items-center gap-3 mt-1">
-                <span className="text-xs text-[#a3c9aa]/40">{timeStr(ev.timestamp)}</span>
-                <span className="text-xs text-[#a3c9aa]/30">{ev.operator}</span>
+                <span className="text-xs text-[#8A9BB5]/40">{timeStr(ev.timestamp)}</span>
+                <span className="text-xs text-[#8A9BB5]/30">{ev.operator}</span>
               </div>
             </div>
           </div>

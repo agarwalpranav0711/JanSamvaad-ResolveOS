@@ -66,34 +66,42 @@ async function logConsent(phone, consented, requestLogger) {
 }
 
 router.post('/voice', async (req, res) => {
-  const response = new VoiceResponse();
-  const phone = req.body.From;
+  try {
+    const response = new VoiceResponse();
+    const phone = req.body.From;
 
-  if (await isDndNumber(phone)) {
-    response.say('You are on DND list, goodbye.');
-    response.hangup();
+    if (await isDndNumber(phone)) {
+      response.say('You are on DND list, goodbye.');
+      response.hangup();
+      res.type('text/xml');
+      res.send(response.toString());
+      return;
+    }
+
+    const gather = response.gather({
+      input: 'dtmf speech',
+      numDigits: 1,
+      action: '/consent',
+      method: 'POST',
+      timeout: 7,
+      speechTimeout: 'auto'
+    });
+
+    gather.say(
+      'Namaste. This call is recorded for grievance resolution under TRAI guidelines. Press 1 to consent and continue. Press 2 or say STOP to opt out.'
+    );
+
+    response.redirect({ method: 'POST' }, '/voice');
+
     res.type('text/xml');
     res.send(response.toString());
-    return;
+  } catch (err) {
+    logger.error({ err }, 'Voice webhook handler failed — returning safe TwiML');
+    const fallback = new VoiceResponse();
+    fallback.say('Thank you for calling JanSamvaad. Please try again shortly.');
+    res.type('text/xml');
+    res.send(fallback.toString());
   }
-
-  const gather = response.gather({
-    input: 'dtmf speech',
-    numDigits: 1,
-    action: '/consent',
-    method: 'POST',
-    timeout: 7,
-    speechTimeout: 'auto'
-  });
-
-  gather.say(
-    'Namaste. This call is recorded for grievance resolution under TRAI guidelines. Press 1 to consent and continue. Press 2 or say STOP to opt out.'
-  );
-
-  response.redirect({ method: 'POST' }, '/voice');
-
-  res.type('text/xml');
-  res.send(response.toString());
 });
 
 router.post('/consent', async (req, res) => {
@@ -195,15 +203,57 @@ router.post('/transcribe', async (req, res) => {
       ward_id: null,
       severity: severityMap[String(grievanceIntent.urgency || '').toLowerCase()] || 'Medium'
     };
+
+    // Duplicate ticket detection (Polish 3)
+    try {
+      const { rows: dupes } = await pool.query(
+        `SELECT id, ref FROM tickets
+         WHERE category = $1
+           AND status = 'open'
+           AND created_at > NOW() - INTERVAL '24 hours'
+         LIMIT 1`,
+        [ticketPayload.category]
+      );
+      if (dupes.length > 0) {
+        (req.log || logger).info({ existingRef: dupes[0].ref, category: ticketPayload.category }, 'Duplicate ticket detected — skipping creation');
+        if (twilioClient && phone) {
+          try {
+            await twilioClient.messages.create({
+              to: phone,
+              from: process.env.TWILIO_PHONE_NUMBER,
+              body: `JanSamvaad: A similar complaint (ref: ${dupes[0].ref}) is already being tracked in your area. We are working on it.`
+            });
+          } catch (smsErr) {
+            (req.log || logger).warn({ err: smsErr }, 'Failed to send duplicate notification SMS');
+          }
+        }
+        return res.status(200).send('');
+      }
+    } catch (dupeErr) {
+      (req.log || logger).warn({ err: dupeErr }, 'Duplicate detection query failed — proceeding with ticket creation');
+    }
+
     const ticket = await createTicket(phone, ticketPayload);
     (req.log || logger).info({ ticketRef: ticket.ref }, 'Ticket created from transcription');
 
     if (twilioClient && phone) {
+      // SMS notification
       await twilioClient.messages.create({
         to: phone,
         from: process.env.TWILIO_PHONE_NUMBER,
         body: `JanSamvaad: Your complaint has been registered. Ticket ref: ${ticket.ref}. We will resolve it within SLA.`
       });
+
+      // WhatsApp notification (Polish 1)
+      try {
+        await twilioClient.messages.create({
+          to: `whatsapp:${phone}`,
+          from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+          body: `🗣️ JanSamvaad ResolveOS\nYour complaint has been registered.\nTicket: ${ticket.ref}\nCategory: ${ticket.category}\nWe will resolve it within SLA.\n\nTrack: ${process.env.APP_BASE_URL || 'http://localhost'}/track`
+        });
+      } catch (waErr) {
+        (req.log || logger).warn({ err: waErr }, 'WhatsApp notification failed');
+      }
     }
   } catch (error) {
     (req.log || logger).error({ err: error }, 'Transcription callback failed');

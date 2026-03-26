@@ -1,3 +1,78 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --gov-navy: #0A1628;
+  --gov-navy-light: #112240;
+  --gov-navy-card: #1A2F4A;
+  --gov-saffron: #FF9933;
+  --gov-saffron-dark: #E6841C;
+  --gov-white: #FFFFFF;
+  --gov-grey-light: #E8EDF2;
+  --gov-grey-mid: #8A9BB5;
+  --gov-green: #138808;
+  --gov-red: #CC0000;
+  --gov-blue-link: #4A90D9;
+  --gov-gold: #C8A951;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--gov-navy);
+  color: var(--gov-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Government scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--gov-navy); }
+::-webkit-scrollbar-thumb { background: var(--gov-navy-card); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gov-grey-mid); }
+
+/* Ticker animations */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
+.ticker-track { animation: ticker-scroll 30s linear infinite; }
+
+@keyframes announcement-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
+.announcement-track { animation: announcement-scroll 25s linear infinite; }
+
+/* Fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+
+/* KPI card entrance */
+@keyframes kpiIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Row animations for dashboard */
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes rowFlash {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(255, 153, 51, 0.08); }
+}
+
+/* SLA pulse */
+@keyframes slaPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-sla-pulse { animation: slaPulse 1.5s ease-in-out infinite; }
+
+/* Safe area for mobile bottom nav */
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
