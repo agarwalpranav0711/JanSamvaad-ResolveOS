@@ -11,7 +11,7 @@ import QRScanner from './pages/QRScanner';
 import SettingsPage from './pages/Settings';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
-const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 const SEVERITY_CLASS_MAP = {
   CRITICAL: 'bg-[#CC0000]/20 text-[#FF4444] border border-[#CC0000]/30',
@@ -250,6 +250,20 @@ const DEMO_TICKETS = [
   buildDemoTicket({ id: 25, ref: 'GRV-U1V2W3', category: 'Electricity Outage', ward_id: 7, severity: 'HIGH', status: 'in_progress', hoursAgo: 7, phone: '+919812345625', summary: 'Localized power interruption in Ward 7 due to feeder tripping under restoration.' })
 ];
 
+const DEFAULT_AI_SUMMARY = {
+  summaryText: 'AI summary will appear here after analyzing recent unresolved tickets.',
+  highlightedEntities: [],
+  suggestedActions: [
+    { title: 'Dispatch Maintenance Crew', subtitle: 'Estimated Resolve: 2h' },
+    { title: 'Notify Ward Counselor', subtitle: 'Protocol requirement' },
+    { title: 'Merge Related Tickets', subtitle: 'Pattern scan in progress' }
+  ],
+  meta: {
+    fallback: false,
+    reason: null
+  }
+};
+
 function decodeJwtUsername(token) {
   try {
     const payloadPart = String(token || '').split('.')[1];
@@ -407,6 +421,102 @@ const ActivitySidebar = memo(function ActivitySidebar({ items, ready }) {
             </div>
           ))
         )}
+      </div>
+    </aside>
+  );
+});
+
+const AIResolutionSummaryCard = memo(function AIResolutionSummaryCard({ data, loading, error, lastUpdatedAt, nowMs }) {
+  const renderSummary = useCallback(() => {
+    const text = String(data?.summaryText || '');
+    const entities = Array.isArray(data?.highlightedEntities) ? data.highlightedEntities.filter(Boolean) : [];
+    if (!text || entities.length === 0) {
+      return <span>{text || DEFAULT_AI_SUMMARY.summaryText}</span>;
+    }
+    const escaped = entities
+      .map((entity) => String(entity).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .filter(Boolean);
+    if (escaped.length === 0) {
+      return <span>{text}</span>;
+    }
+    const matcher = new RegExp(`(${escaped.join('|')})`, 'gi');
+    const parts = text.split(matcher);
+    return parts.map((part, index) => {
+      const matched = entities.find((entity) => String(entity).toLowerCase() === String(part).toLowerCase());
+      if (!matched) {
+        return <span key={`${part}-${index}`}>{part}</span>;
+      }
+      const lowered = String(part).toLowerCase();
+      const highlightClass = lowered.includes('surge') || lowered.includes('transformer')
+        ? 'text-indigo-300'
+        : 'text-teal-300';
+      return <span key={`${part}-${index}`} className={`font-semibold ${highlightClass}`}>{part}</span>;
+    });
+  }, [data]);
+
+  const actions = Array.isArray(data?.suggestedActions) && data.suggestedActions.length > 0
+    ? data.suggestedActions
+    : DEFAULT_AI_SUMMARY.suggestedActions;
+  const fallback = Boolean(data?.meta?.fallback);
+  const fallbackReason = String(data?.meta?.reason || '');
+  const fallbackMessage = fallbackReason === 'rate_limited'
+    ? 'AI is at capacity right now. Showing a smart fallback summary.'
+    : fallback
+      ? 'Showing fallback guidance while AI completes analysis.'
+      : '';
+
+  return (
+    <aside className="rounded-2xl border border-white/10 bg-[#1E222D] p-5 shadow-xl shadow-black/30">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/15 text-teal-300">
+            ✨
+          </span>
+          <h3 className="text-lg font-bold tracking-tight text-white">AI Resolution Summary</h3>
+        </div>
+        <p className="pt-1 text-[11px] text-slate-400" data-tick={nowMs}>
+          {loading ? 'updating…' : `updated ${lastUpdatedAt ? formatRelativeTime(lastUpdatedAt) : 'just now'}`}
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-[#2A3140] p-4">
+        {fallbackMessage ? (
+          <div className="mb-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200">
+            {fallbackMessage}
+          </div>
+        ) : null}
+        {loading ? (
+          <div className="space-y-2 animate-pulse">
+            <div className="h-3 rounded bg-slate-600/60" />
+            <div className="h-3 rounded bg-slate-600/50" />
+            <div className="h-3 w-4/5 rounded bg-slate-600/40" />
+          </div>
+        ) : error ? (
+          <p className="text-xs text-rose-300">{error}</p>
+        ) : (
+          <p className="text-sm leading-relaxed text-slate-300">{renderSummary()}</p>
+        )}
+      </div>
+
+      <div className="mt-5">
+        <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Suggested Actions</p>
+        <div className="space-y-2.5">
+          {actions.map((action) => (
+            <button
+              key={action.title}
+              type="button"
+              className="group w-full rounded-xl border border-white/5 bg-[#1B2130] px-4 py-3 text-left transition-all duration-200 hover:bg-[#242B3A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-100">{action.title}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">{action.subtitle}</p>
+                </div>
+                <span className="text-slate-500 transition-colors group-hover:text-slate-300">{'>'}</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </aside>
   );
@@ -710,6 +820,10 @@ export default function Dashboard() {
   const [expandedRows, setExpandedRows] = useState({});
   const [activePage, setActivePage] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [aiSummary, setAiSummary] = useState(DEFAULT_AI_SUMMARY);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummaryError, setAiSummaryError] = useState('');
+  const [aiSummaryUpdatedAt, setAiSummaryUpdatedAt] = useState(null);
   const [trends, setTrends] = useState({
     total: 0,
     open: 0,
@@ -864,6 +978,44 @@ export default function Dashboard() {
     }
   }, [authFetch, authToken]);
 
+  const fetchAiSummary = useCallback(async () => {
+    if (!authToken) {
+      return;
+    }
+    if (DEMO_MODE) {
+      setAiSummary(DEFAULT_AI_SUMMARY);
+      setAiSummaryError('');
+      return;
+    }
+    setAiSummaryLoading(true);
+    setAiSummaryError('');
+    try {
+      const response = await authFetch(`${API}/api/tickets/ai-summary`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI summary');
+      }
+      const payload = await response.json();
+      setAiSummary({
+        summaryText: String(payload?.summaryText || DEFAULT_AI_SUMMARY.summaryText),
+        highlightedEntities: Array.isArray(payload?.highlightedEntities) ? payload.highlightedEntities : [],
+        suggestedActions: Array.isArray(payload?.suggestedActions) && payload.suggestedActions.length > 0
+          ? payload.suggestedActions
+          : DEFAULT_AI_SUMMARY.suggestedActions,
+        meta: {
+          fallback: Boolean(payload?.meta?.fallback),
+          reason: payload?.meta?.reason || null
+        }
+      });
+      setAiSummaryUpdatedAt(new Date().toISOString());
+    } catch (err) {
+      setAiSummaryError('Unable to generate AI summary right now.');
+      setAiSummary(DEFAULT_AI_SUMMARY);
+      setAiSummaryUpdatedAt(new Date().toISOString());
+    } finally {
+      setAiSummaryLoading(false);
+    }
+  }, [authFetch, authToken]);
+
   useEffect(() => {
     if (DEMO_MODE) {
       setLoading(false);
@@ -894,6 +1046,7 @@ export default function Dashboard() {
       }, 2000);
       addActivity('new_ticket', `New ticket ${ticket.ref} • ${displayCategory(ticket.category)} ${displayWard(ticket)}`, ticket);
       addToast('new_ticket', `📞 New ticket: ${displayCategory(ticket.category)} ${displayWard(ticket)}`);
+      fetchAiSummary();
     });
 
     socket.on('ticket_resolved', (ticket) => {
@@ -919,7 +1072,7 @@ export default function Dashboard() {
       socket.off('disconnect', onDisconnect);
       socket.disconnect();
     };
-  }, [addActivity, addToast, authToken, fetchData, mergeTicket]);
+  }, [addActivity, addToast, authToken, fetchAiSummary, fetchData, mergeTicket]);
 
   useEffect(() => {
     if (DEMO_MODE) return undefined;
@@ -932,6 +1085,13 @@ export default function Dashboard() {
 
     return () => clearInterval(interval);
   }, [authToken, fetchData, socketLive]);
+
+  useEffect(() => {
+    if (!authToken) {
+      return;
+    }
+    fetchAiSummary();
+  }, [authToken, fetchAiSummary]);
 
   const handleResolve = useCallback(async (ticketId, triggerSource = 'system') => {
     setResolvingTicketIds((previous) => ({
@@ -1458,8 +1618,11 @@ export default function Dashboard() {
             </>
           )}
         </div>
-        <div aria-live="polite" className="hidden lg:block">
-          <ActivitySidebar items={activity} ready={sidebarReady} />
+        <div className="hidden lg:flex lg:flex-col lg:gap-4">
+          <AIResolutionSummaryCard data={aiSummary} loading={aiSummaryLoading} error={aiSummaryError} lastUpdatedAt={aiSummaryUpdatedAt} nowMs={nowMs} />
+          <div aria-live="polite">
+            <ActivitySidebar items={activity} ready={sidebarReady} />
+          </div>
         </div>
       </section>
     </>

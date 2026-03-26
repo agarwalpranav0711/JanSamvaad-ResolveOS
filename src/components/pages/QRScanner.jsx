@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-const API = 'https://jansamvaad-backend-608936922611.asia-south1.run.app';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 export default function QRScanner() {
   const [ref, setRef] = useState('');

@@ -20,6 +20,34 @@ function fallbackIntent(transcript) {
   };
 }
 
+function fallbackResolutionSummary(tickets, reason = 'model_unavailable') {
+  const safeTickets = Array.isArray(tickets) ? tickets : [];
+  const firstTicket = safeTickets[0];
+  const firstRef = firstTicket?.ref || '#UNKNOWN';
+  const categories = safeTickets
+    .map((ticket) => String(ticket.category || '').toLowerCase())
+    .filter(Boolean);
+  const categoryCounts = categories.reduce((acc, category) => {
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {});
+  const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'general issue';
+  const duplicateCount = Math.max(0, safeTickets.length - 1);
+  return {
+    summaryText: `Ticket ${firstRef} highlights a recurring ${topCategory} pattern in nearby wards. Multiple unresolved reports suggest a shared infrastructure root cause requiring coordinated action.`,
+    highlightedEntities: [firstRef, 'shared infrastructure root cause'],
+    suggestedActions: [
+      { title: 'Dispatch Maintenance Crew', subtitle: 'Estimated Resolve: 2h' },
+      { title: 'Notify Ward Counselor', subtitle: 'Protocol requirement' },
+      { title: 'Merge Related Tickets', subtitle: `${duplicateCount} duplicates detected` }
+    ],
+    meta: {
+      fallback: true,
+      reason
+    }
+  };
+}
+
 async function extractIntent(transcript) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
@@ -74,7 +102,104 @@ ${transcript}
   }
 }
 
+async function generateResolutionSummary(tickets) {
+  const safeTickets = Array.isArray(tickets)
+    ? tickets.map((ticket) => ({
+      ref: ticket.ref,
+      category: ticket.category,
+      severity: ticket.severity,
+      status: ticket.status,
+      ward_id: ticket.ward_id,
+      created_at: ticket.created_at,
+      summary: ticket.summary || ticket.ai_summary || null
+    }))
+    : [];
+  if (safeTickets.length === 0) {
+    return fallbackResolutionSummary([], 'no_open_tickets');
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    logger.warn('No GEMINI_API_KEY or GOOGLE_API_KEY set — using fallback AI resolution summary');
+    return fallbackResolutionSummary(safeTickets, 'missing_api_key');
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  const prompt = `
+You are an operations copilot for an Indian civic grievance dashboard.
+Given recent unresolved tickets, infer likely common root causes and produce concise action guidance.
+Return ONLY valid JSON with this exact schema:
+{
+  "summaryText": "string",
+  "highlightedEntities": ["string", "string"],
+  "suggestedActions": [
+    {"title": "string", "subtitle": "string"},
+    {"title": "string", "subtitle": "string"},
+    {"title": "string", "subtitle": "string"}
+  ]
+}
+Constraints:
+- summaryText max 60 words
+- highlightedEntities length 2 to 4
+- suggestedActions length exactly 3
+- Keep language professional and operator-focused
+- Use ticket refs and concrete infrastructure terms when possible
+
+Tickets:
+${JSON.stringify(safeTickets)}
+`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt
+    });
+    const rawText = result.text ? result.text.trim() : '';
+    if (!rawText) {
+      return fallbackResolutionSummary(safeTickets, 'empty_model_response');
+    }
+    const cleaned = rawText
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/, '');
+    const parsed = JSON.parse(cleaned);
+    if (
+      !parsed ||
+      typeof parsed.summaryText !== 'string' ||
+      !Array.isArray(parsed.highlightedEntities) ||
+      !Array.isArray(parsed.suggestedActions)
+    ) {
+      return fallbackResolutionSummary(safeTickets, 'invalid_model_schema');
+    }
+    const normalizedActions = parsed.suggestedActions
+      .map((action) => ({
+        title: String(action?.title || '').trim(),
+        subtitle: String(action?.subtitle || '').trim()
+      }))
+      .filter((action) => action.title && action.subtitle)
+      .slice(0, 3);
+    const finalActions = normalizedActions.length === 3
+      ? normalizedActions
+      : fallbackResolutionSummary(safeTickets).suggestedActions;
+    return {
+      summaryText: parsed.summaryText.trim() || fallbackResolutionSummary(safeTickets).summaryText,
+      highlightedEntities: parsed.highlightedEntities.map((entity) => String(entity || '').trim()).filter(Boolean).slice(0, 4),
+      suggestedActions: finalActions,
+      meta: {
+        fallback: false,
+        reason: null
+      }
+    };
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to generate AI resolution summary');
+    const message = String(error?.message || '').toLowerCase();
+    const isRateLimit = message.includes('429') || message.includes('quota') || message.includes('rate limit');
+    return fallbackResolutionSummary(safeTickets, isRateLimit ? 'rate_limited' : 'model_failure');
+  }
+}
+
 module.exports = {
   transcribeAudio,
-  extractIntent
+  extractIntent,
+  generateResolutionSummary
 };

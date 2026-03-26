@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const authenticateToken = require('../middleware/authenticateToken');
 const logger = require('../utils/logger');
+const { generateResolutionSummary } = require('../services/llm');
 
 const router = express.Router();
 
@@ -83,6 +84,33 @@ router.get('/api/stats', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     (req.log || logger).error({ err: error }, 'Failed to fetch dashboard stats');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/api/tickets/ai-summary', authenticateToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+         t.id,
+         t.ref,
+         t.category,
+         t.severity,
+         t.status,
+         t.created_at,
+         t.closed_at,
+         t.ward_id,
+         COALESCE(w.name, 'Ward ' || t.ward_id) AS ward_name
+       FROM tickets t
+       LEFT JOIN wards w ON w.id = t.ward_id
+       WHERE t.status = 'open'
+       ORDER BY t.created_at DESC
+       LIMIT 5`
+    );
+    const summary = await generateResolutionSummary(rows);
+    res.json(summary);
+  } catch (error) {
+    (req.log || logger).error({ err: error }, 'Failed to generate AI ticket summary');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
