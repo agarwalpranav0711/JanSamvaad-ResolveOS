@@ -2,7 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const authenticateToken = require('../middleware/authenticateToken');
 const logger = require('../utils/logger');
-const { generateResolutionSummary } = require('../services/llm');
+const { generateResolutionSummary, askResolveOSAssistant } = require('../services/llm');
 
 const router = express.Router();
 
@@ -114,6 +114,36 @@ router.get('/api/tickets/ai-summary', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+const assistantChatHandler = async (req, res) => {
+  try {
+    const message = String(req.body?.message || '').trim();
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+    const { rows } = await pool.query(
+      `SELECT
+         t.id,
+         t.ref,
+         t.category,
+         t.ward_id,
+         t.severity,
+         t.created_at
+       FROM tickets t
+       WHERE t.status = 'open'
+       ORDER BY t.created_at DESC
+       LIMIT 5`
+    );
+    const result = await askResolveOSAssistant(message, rows);
+    return res.json(result);
+  } catch (error) {
+    (req.log || logger).error({ err: error }, 'ResolveOS Assistant chat failed');
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+router.post('/api/assistant/chat', authenticateToken, assistantChatHandler);
+router.post('/assistant/chat', authenticateToken, assistantChatHandler);
 
 /* ───── PUBLIC ENDPOINTS (no auth) ───── */
 

@@ -198,8 +198,61 @@ ${JSON.stringify(safeTickets)}
   }
 }
 
+async function askResolveOSAssistant(userMessage, tickets) {
+  const safeMessage = String(userMessage || '').trim();
+  const safeTickets = Array.isArray(tickets)
+    ? tickets.map((ticket) => ({
+      id: ticket.id,
+      ref: ticket.ref,
+      category: ticket.category,
+      ward_id: ticket.ward_id,
+      severity: ticket.severity,
+      created_at: ticket.created_at
+    }))
+    : [];
+  const fallback = {
+    response: 'ResolveOS Assistant is temporarily unavailable. Please try again in a moment.',
+    fallback: true
+  };
+
+  if (!safeMessage) {
+    return {
+      response: 'Please share a question so I can help with ticket actions and next steps.',
+      fallback: true
+    };
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    logger.warn('No GEMINI_API_KEY or GOOGLE_API_KEY set — ResolveOS Assistant fallback');
+    return fallback;
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  const prompt = `You are ResolveOS Assistant, an expert municipal operations advisor for Indian city corporations. The operator has asked: "${safeMessage}". Here is the current open ticket data for context: ${JSON.stringify(safeTickets)}. Provide clear, actionable, concise guidance in plain text. Be specific about steps, who to notify, and estimated timelines where relevant. Do not output JSON.`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt
+    });
+    const text = String(result?.text || '').trim();
+    if (!text) {
+      return fallback;
+    }
+    return {
+      response: text,
+      fallback: false
+    };
+  } catch (error) {
+    logger.error({ err: error }, 'ResolveOS Assistant generation failed');
+    return fallback;
+  }
+}
+
 module.exports = {
   transcribeAudio,
   extractIntent,
-  generateResolutionSummary
+  generateResolutionSummary,
+  askResolveOSAssistant
 };
