@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api').replace(/\/$/, '')
 const CATEGORY_COLORS = ['#F97316', '#16A34A', '#0EA5E9', '#EF4444', '#F59E0B']
 type CategoryItem = { name: string; value: number }
 type WardItem = { ward: string; open: number }
@@ -36,7 +36,7 @@ export default function PublicPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/api/public/stats`)
+      const response = await fetch(`${API}/public/stats`)
       if (!response.ok) {
         throw new Error('Failed to load stats')
       }
@@ -119,7 +119,7 @@ export default function PublicPage() {
     setTrackError('')
     setTrackResult(null)
     try {
-      const response = await fetch(`${API}/api/public/tickets?ref=${encodeURIComponent(value)}`)
+      const response = await fetch(`${API}/public/tickets?ref=${encodeURIComponent(value)}`)
       if (!response.ok) {
         throw new Error('Reference number not found')
       }

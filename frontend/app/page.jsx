@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
-const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api').replace(/\/$/, '');
 
 function useScrollAnimatedNumber(target, duration = 1200) {
   const [val, setVal] = useState(0);
@@ -98,7 +98,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     document.title = 'JanSamvaad — नागरिक शिकायत निवारण | Citizen Grievance Redressal';
-    fetch(`${API}/api/public/stats`)
+    fetch(`${API}/public/stats`)
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});

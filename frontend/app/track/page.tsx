@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 
-const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api').replace(/\/$/, '')
 
 const SEV: Record<string, { bg: string; text: string; label: string }> = {
   CRITICAL: { bg: 'bg-[#CC0000]/15', text: 'text-[#FF4444]', label: 'CRITICAL' },
@@ -129,7 +129,7 @@ export default function TrackPage() {
     setFeedbackSent(false)
 
     try {
-      const res = await fetch(`${API}/api/public/tickets?ref=${encodeURIComponent(q)}`)
+      const res = await fetch(`${API}/public/tickets?ref=${encodeURIComponent(q)}`)
       if (res.status === 404) {
         setError('not_found')
         return
@@ -149,7 +149,7 @@ export default function TrackPage() {
     if (!ticket?.id) return
     setFeedbackLoading(true)
     try {
-      await fetch(`${API}/api/tickets/${ticket.id}/feedback`, {
+      await fetch(`${API}/tickets/${ticket.id}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating: stars })
