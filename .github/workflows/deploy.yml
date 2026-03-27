@@ -1,0 +1,25 @@
+name: Auto-Deploy Backend to Google Cloud
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'frontend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into GCP and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            cd ~/JanSamvaad-ResolveOS
+            git pull origin main --rebase
+            sudo docker compose build backend --no-cache
+            sudo docker compose up -d backend postgres
