@@ -824,6 +824,10 @@ export default function Dashboard() {
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiSummaryError, setAiSummaryError] = useState('');
   const [aiSummaryUpdatedAt, setAiSummaryUpdatedAt] = useState(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
   const [trends, setTrends] = useState({
     total: 0,
     open: 0,
@@ -838,6 +842,7 @@ export default function Dashboard() {
   const bellButtonRef = useRef(null);
   const drawerRef = useRef(null);
   const drawerCloseButtonRef = useRef(null);
+  const chatScrollRef = useRef(null);
 
   useEffect(() => {
     const dmSans = document.createElement('link');
@@ -887,6 +892,7 @@ export default function Dashboard() {
     setOperatorName('Operator');
     setSocketLive(false);
     setError('');
+    setIsAssistantOpen(false);
   }, []);
 
   const addActivity = useCallback((type, message, ticket) => {
@@ -1016,6 +1022,45 @@ export default function Dashboard() {
     }
   }, [authFetch, authToken]);
 
+  const sendMessage = useCallback(async () => {
+    const message = chatInput.trim();
+    if (!message || chatLoading || !authToken) {
+      return;
+    }
+    setChatInput('');
+    setChatHistory((previous) => [...previous, { role: 'user', text: message }]);
+    setChatLoading(true);
+    try {
+      const response = await authFetch(`${API}/api/assistant/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message })
+      });
+      if (!response.ok) {
+        throw new Error('Assistant request failed');
+      }
+      const payload = await response.json();
+      const assistantText = String(payload?.response || '').trim() || 'ResolveOS Assistant is temporarily unavailable. Please try again in a moment.';
+      setChatHistory((previous) => [...previous, { role: 'assistant', text: assistantText }]);
+    } catch (err) {
+      setChatHistory((previous) => [
+        ...previous,
+        { role: 'assistant', text: 'ResolveOS Assistant is temporarily unavailable. Please try again.' }
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  }, [authFetch, authToken, chatInput, chatLoading]);
+
+  const handleChatKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  }, [sendMessage]);
+
   useEffect(() => {
     if (DEMO_MODE) {
       setLoading(false);
@@ -1092,6 +1137,20 @@ export default function Dashboard() {
     }
     fetchAiSummary();
   }, [authToken, fetchAiSummary]);
+
+  useEffect(() => {
+    if (!isAssistantOpen || !authToken) {
+      return;
+    }
+    fetchAiSummary();
+  }, [authToken, fetchAiSummary, isAssistantOpen]);
+
+  useEffect(() => {
+    if (!chatScrollRef.current) {
+      return;
+    }
+    chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+  }, [chatHistory, chatLoading, isAssistantOpen]);
 
   const handleResolve = useCallback(async (ticketId, triggerSource = 'system') => {
     setResolvingTicketIds((previous) => ({
@@ -1311,6 +1370,7 @@ export default function Dashboard() {
     setAuthToken('');
     setOperatorName('Operator');
     setSocketLive(false);
+    setIsAssistantOpen(false);
     setLoginPassword('');
     setLoginError('');
   }, []);
@@ -1618,11 +1678,8 @@ export default function Dashboard() {
             </>
           )}
         </div>
-        <div className="hidden lg:flex lg:flex-col lg:gap-4">
-          <AIResolutionSummaryCard data={aiSummary} loading={aiSummaryLoading} error={aiSummaryError} lastUpdatedAt={aiSummaryUpdatedAt} nowMs={nowMs} />
-          <div aria-live="polite">
-            <ActivitySidebar items={activity} ready={sidebarReady} />
-          </div>
+        <div aria-live="polite" className="hidden lg:block">
+          <ActivitySidebar items={activity} ready={sidebarReady} />
         </div>
       </section>
     </>
@@ -1677,6 +1734,13 @@ export default function Dashboard() {
               {socketLive ? 'LIVE' : 'OFFLINE'}
             </div>
             <span className="hidden sm:inline text-xs text-slate-400 font-mono">{formatClock(clock)}</span>
+            <button
+              type="button"
+              onClick={() => setIsAssistantOpen(true)}
+              className="bg-teal-500/15 text-teal-300 hover:bg-teal-500/25 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            >
+              ✨ ResolveOS Assistant
+            </button>
             <button type="button" onClick={handleLogout} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/[0.06] transition-all">Logout</button>
           </div>
         </header>
@@ -1685,6 +1749,86 @@ export default function Dashboard() {
           {renderActivePage()}
         </main>
       </div>
+
+      <aside className={`fixed inset-y-0 right-0 z-50 w-96 flex flex-col bg-[#1E222D] border-l border-white/10 shadow-2xl transform transition-transform duration-300 ease-in-out ${isAssistantOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-teal-500/15 text-teal-300">✨</span>
+            <h2 className="text-sm font-semibold text-white">ResolveOS Assistant</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAssistantOpen(false)}
+            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300 hover:bg-white/10"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex h-full min-h-0 flex-col">
+          <section className="h-1/2 min-h-0 overflow-y-auto p-4">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">LIVE OVERVIEW</p>
+            <AIResolutionSummaryCard
+              data={aiSummary}
+              loading={aiSummaryLoading}
+              error={aiSummaryError}
+              lastUpdatedAt={aiSummaryUpdatedAt}
+              nowMs={nowMs}
+            />
+          </section>
+
+          <hr className="border-white/10" />
+
+          <section className="h-1/2 min-h-0 flex flex-col">
+            <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">ASK RESOLVEOS</p>
+            <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatHistory.length === 0 ? (
+                <div className="rounded-lg border border-white/10 bg-[#2A3140] p-3 text-xs text-slate-300">
+                  Ask about ticket prioritization, escalation path, or ward-specific action plans.
+                </div>
+              ) : (
+                chatHistory.map((item, index) => (
+                  <div
+                    key={`${item.role}-${index}`}
+                    className={`max-w-[92%] rounded-lg p-3 text-sm whitespace-pre-wrap ${
+                      item.role === 'user'
+                        ? 'ml-auto bg-teal-600/20 border border-teal-500/30 text-slate-100'
+                        : 'mr-auto bg-[#2A3140] text-slate-300'
+                    }`}
+                  >
+                    {item.text}
+                  </div>
+                ))
+              )}
+              {chatLoading ? (
+                <div className="mr-auto max-w-[92%] rounded-lg bg-[#2A3140] p-3 text-sm text-slate-300">
+                  Thinking...
+                </div>
+              ) : null}
+            </div>
+            <div className="sticky bottom-0 border-t border-white/10 bg-[#1E222D] p-3">
+              <div className="flex items-end gap-2">
+                <textarea
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  onKeyDown={handleChatKeyDown}
+                  rows={1}
+                  placeholder="Ask ResolveOS Assistant..."
+                  className="w-full resize-none rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-teal-400/70 transition-all focus:min-h-[72px]"
+                />
+                <button
+                  type="button"
+                  onClick={sendMessage}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="rounded-md bg-teal-500 px-3 py-2 text-xs font-semibold text-[#0A1628] hover:bg-teal-400 disabled:opacity-60"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
     </div>
   );
 }

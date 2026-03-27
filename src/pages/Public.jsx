@@ -1,102 +1,48 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend,
-  BarChart, Bar
-} from 'recharts';
-import Navbar from '../components/Navbar';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+const CATEGORY_COLORS = ['#F97316', '#16A34A', '#0EA5E9', '#EF4444', '#F59E0B'];
 
-/* Government chart palette */
-const CHART_COLORS = ['#FF9933', '#1A2F4A', '#138808', '#C8A951', '#4A90D9', '#CC0000', '#8A9BB5', '#E6841C'];
-
-/* ─── Animated number ─── */
-function useAnimatedNumber(target, duration = 900) {
-  const [val, setVal] = useState(0);
-  const prev = useRef(0);
-  useEffect(() => {
-    const start = prev.current;
-    const end = Number(target || 0);
-    const t0 = performance.now();
-    let raf;
-    const step = (now) => {
-      const p = Math.min((now - t0) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(start + (end - start) * ease));
-      if (p < 1) { raf = requestAnimationFrame(step); }
-      else { prev.current = end; }
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-  return val;
+function formatLastSync(secondsAgo) {
+  if (secondsAgo < 5) return 'just now';
+  if (secondsAgo < 60) return `${secondsAgo}s ago`;
+  const minutes = Math.floor(secondsAgo / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
 }
 
-/* ─── KPI Card ─── */
-function KPICard({ label, value, suffix = '', icon, color = 'text-[#FF9933]' }) {
-  const animated = useAnimatedNumber(value);
-  return (
-    <div className="rounded-xl border border-white/10 bg-[#112240] p-6 hover:border-[#FF9933]/20 transition-all duration-300 group">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs uppercase tracking-widest text-[#8A9BB5]">{label}</span>
-        <span className="text-2xl opacity-30 group-hover:opacity-60 transition-opacity">{icon}</span>
-      </div>
-      <p className={`text-4xl font-bold ${color}`}>
-        {animated.toLocaleString()}{suffix}
-      </p>
-    </div>
-  );
+function getHeatColor(openCount) {
+  if (openCount >= 24) return 'bg-red-500/90';
+  if (openCount >= 18) return 'bg-orange-500/90';
+  if (openCount >= 12) return 'bg-amber-400/90';
+  if (openCount >= 7) return 'bg-lime-400/90';
+  return 'bg-emerald-400/90';
 }
 
-/* ─── Custom Tooltip ─── */
-function CustomTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg bg-[#1A2F4A] border border-white/10 px-4 py-3 shadow-xl text-xs text-white">
-      <p className="font-semibold mb-1">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }}>{p.name}: {p.value}</p>
-      ))}
-    </div>
-  );
-}
-
-/* ─── Time ago helper ─── */
-function timeAgo(iso) {
-  if (!iso) return '';
-  const ms = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
-/* ─── Main Public Page ─── */
 export default function Public() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastFetched, setLastFetched] = useState(null);
   const [secondsAgo, setSecondsAgo] = useState(0);
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    document.title = 'Public Grievance Data — JanSamvaad Transparency Portal';
-  }, []);
+  const [trackRef, setTrackRef] = useState('');
+  const [trackResult, setTrackResult] = useState(null);
+  const [trackError, setTrackError] = useState('');
+  const [trackLoading, setTrackLoading] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/public/stats`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      const json = await res.json();
-      setData(json);
+      const response = await fetch(`${API}/api/public/stats`);
+      if (!response.ok) {
+        throw new Error('Failed to load stats');
+      }
+      const payload = await response.json();
+      setData(payload);
+      setError('');
       setLastFetched(Date.now());
       setSecondsAgo(0);
-      setError('');
     } catch (err) {
-      setError('Unable to load transparency data. Please try again later.');
+      setError('Unable to load transparency data right now.');
     } finally {
       setLoading(false);
     }
@@ -104,310 +50,221 @@ export default function Public() {
 
   useEffect(() => {
     fetchStats();
-    const timer = setInterval(fetchStats, 30000);
-    return () => clearInterval(timer);
+    const refreshTimer = setInterval(fetchStats, 30000);
+    return () => clearInterval(refreshTimer);
   }, [fetchStats]);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      if (lastFetched) setSecondsAgo(Math.floor((Date.now() - lastFetched) / 1000));
+    if (!lastFetched) return undefined;
+    const timer = setInterval(() => {
+      setSecondsAgo(Math.floor((Date.now() - lastFetched) / 1000));
     }, 1000);
-    return () => clearInterval(intervalRef.current);
+    return () => clearInterval(timer);
   }, [lastFetched]);
 
-  // Data with fallbacks
-  const categoryData = data?.category_breakdown?.length ? data.category_breakdown : [
-    { name: 'Road Damage', value: 24 },
-    { name: 'Water Leakage', value: 18 },
-    { name: 'Garbage', value: 15 },
-    { name: 'Electricity', value: 12 },
-    { name: 'Drainage', value: 9 },
-    { name: 'Other', value: 6 },
-  ];
+  const categoryData = useMemo(() => {
+    if (Array.isArray(data?.category_breakdown) && data.category_breakdown.length > 0) {
+      return data.category_breakdown
+        .map((item) => ({
+          name: String(item.name || 'Uncategorized'),
+          value: Number(item.value || 0)
+        }))
+        .slice(0, 5);
+    }
+    return [
+      { name: 'Road Damage', value: 15 },
+      { name: 'Garbage Collection', value: 8 },
+      { name: 'Water Leakage', value: 14 },
+      { name: 'General Complaints', value: 9 },
+      { name: 'Electricity Outage', value: 6 }
+    ];
+  }, [data]);
 
-  const trendData = data?.monthly_trend?.length ? data.monthly_trend : [
-    { month: 'Oct', complaints: 320, resolved: 280 },
-    { month: 'Nov', complaints: 410, resolved: 370 },
-    { month: 'Dec', complaints: 380, resolved: 350 },
-    { month: 'Jan', complaints: 520, resolved: 460 },
-    { month: 'Feb', complaints: 490, resolved: 470 },
-    { month: 'Mar', complaints: 310, resolved: 290 },
-  ];
+  const wardHeatmap = useMemo(() => {
+    const fallback = [
+      { ward: 'W1', open: 12 }, { ward: 'W2', open: 8 }, { ward: 'W3', open: 24 }, { ward: 'W4', open: 15 }, { ward: 'W5', open: 19 },
+      { ward: 'W6', open: 6 }, { ward: 'W7', open: 10 }, { ward: 'W8', open: 22 }, { ward: 'W9', open: 13 }, { ward: 'W10', open: 18 },
+      { ward: 'W11', open: 7 }, { ward: 'W12', open: 5 }, { ward: 'W13', open: 16 }, { ward: 'W14', open: 9 }, { ward: 'W15', open: 20 }
+    ];
+    if (!Array.isArray(data?.ward_stats) || data.ward_stats.length === 0) {
+      return fallback;
+    }
+    return data.ward_stats.slice(0, 15).map((entry, index) => ({
+      ward: String(entry.ward || `W${index + 1}`),
+      open: Number(entry.open || 0)
+    }));
+  }, [data]);
 
-  const wardStats = data?.ward_stats?.length ? data.ward_stats : [
-    { ward: 'Connaught Place', open: 5, resolved: 22, sla_breached: 1 },
-    { ward: 'Karol Bagh', open: 8, resolved: 17, sla_breached: 3 },
-    { ward: 'Chandni Chowk', open: 3, resolved: 28, sla_breached: 0 },
-    { ward: 'Dwarka', open: 6, resolved: 15, sla_breached: 2 },
-    { ward: 'Saket', open: 4, resolved: 19, sla_breached: 1 },
-  ];
+  const totalTickets = Number(data?.total_tickets || 0);
+  const resolutionRate = Number(data?.resolution_rate || 0);
+  const avgResolutionHours = Number(data?.avg_resolution_hours || 0);
+  const activeIssues = Number(data?.open_count || 0);
+  const totalCategory = categoryData.reduce((sum, item) => sum + item.value, 0) || 1;
+  const donutGradient = categoryData
+    .map((item, index, list) => {
+      const start = (list.slice(0, index).reduce((sum, node) => sum + node.value, 0) / totalCategory) * 360;
+      const end = ((list.slice(0, index + 1).reduce((sum, node) => sum + node.value, 0)) / totalCategory) * 360;
+      return `${CATEGORY_COLORS[index % CATEGORY_COLORS.length]} ${start}deg ${end}deg`;
+    })
+    .join(', ');
 
-  const recentResolved = data?.recent_resolved?.length ? data.recent_resolved : [
-    { ref: 'JS-A1B2C3', category: 'Pothole', ward_name: 'Chandni Chowk', closed_at: new Date(Date.now() - 7200000).toISOString() },
-    { ref: 'JS-D4E5F6', category: 'Water leak', ward_name: 'Connaught Place', closed_at: new Date(Date.now() - 14400000).toISOString() },
-    { ref: 'JS-G7H8I9', category: 'Garbage', ward_name: 'Saket', closed_at: new Date(Date.now() - 28800000).toISOString() },
-  ];
-
-  const wardBarData = wardStats.map(w => ({
-    ward: w.ward,
-    rate: (w.open + w.resolved) > 0 ? Math.round((w.resolved / (w.open + w.resolved)) * 100) : 0
-  })).sort((a, b) => b.rate - a.rate);
-
-  const totalCat = categoryData.reduce((s, c) => s + c.value, 0) || 1;
+  const searchStatus = useCallback(async () => {
+    const value = trackRef.trim().toUpperCase();
+    if (!value) return;
+    setTrackLoading(true);
+    setTrackError('');
+    setTrackResult(null);
+    try {
+      const response = await fetch(`${API}/api/public/tickets?ref=${encodeURIComponent(value)}`);
+      if (!response.ok) {
+        throw new Error('Reference number not found');
+      }
+      const payload = await response.json();
+      setTrackResult(payload);
+    } catch (err) {
+      setTrackError('Reference number not found. Please check and retry.');
+    } finally {
+      setTrackLoading(false);
+    }
+  }, [trackRef]);
 
   return (
-    <div className="min-h-screen bg-[#0A1628] text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <Navbar />
-
-      <div className="pt-24 pb-16 px-4 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="text-xl">🇮🇳</span>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">
-              JanSamvaad — <span className="text-[#FF9933]">Public Grievance Transparency Portal</span>
-            </h1>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
+        <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Public Transparency Portal</h1>
+            <p className="mt-1 text-sm text-slate-500">Real-time civic grievance data for citizens</p>
           </div>
-          <p className="text-[#FF9933] text-xs mb-1">Ministry of Housing & Urban Affairs | Government of India</p>
-          <p className="text-[#8A9BB5] text-sm mb-4">Real-time Municipal Accountability Data</p>
-          {lastFetched && (
-            <p className="text-xs text-[#8A9BB5]/60">
-              Last updated: <span className="text-[#138808]">{secondsAgo}</span> second{secondsAgo !== 1 ? 's' : ''} ago
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#138808] ml-2 animate-pulse" />
-            </p>
-          )}
-        </div>
-
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-24">
-            <div className="flex flex-col items-center gap-4">
-              <svg className="animate-spin h-8 w-8 text-[#FF9933]" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
-              <p className="text-[#8A9BB5]">Loading transparency data...</p>
+          <div className="flex items-center gap-4 text-sm">
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Live Data
             </div>
+            <span className="text-slate-500">Last sync: {formatLastSync(secondsAgo)}</span>
           </div>
-        )}
+        </header>
 
-        {/* Error */}
-        {error && !loading && (
-          <div className="text-center py-16 px-6 rounded-xl border border-[#CC0000]/20 bg-[#CC0000]/5">
-            <p className="text-4xl mb-4">⚠️</p>
-            <p className="text-lg text-[#FF4444] font-semibold mb-2">{error}</p>
-            <button onClick={fetchStats} className="mt-4 px-6 py-2 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] transition-all">
-              Retry
-            </button>
+        {error ? (
+          <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
           </div>
-        )}
+        ) : null}
 
-        {/* Dashboard Content */}
-        {!loading && !error && (
-          <div className="space-y-8 animate-fadeIn">
+        <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Total Complaints</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">{totalTickets.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Resolution Rate</p>
+            <p className="mt-2 text-3xl font-semibold text-emerald-700">{resolutionRate.toFixed(1)}%</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Avg Resolution Time</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">{avgResolutionHours.toFixed(1)} hrs</p>
+          </div>
+          <div className="rounded-xl border border-orange-200 bg-orange-50/40 p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Active Issues</p>
+            <p className="mt-2 text-3xl font-semibold text-orange-700">{activeIssues.toLocaleString()}</p>
+          </div>
+        </section>
 
-            {/* Open Data Notice */}
-            <div className="rounded-lg border-l-4 border-[#FF9933] bg-white/[0.02] p-4">
-              <p className="text-xs text-white/80">
-                📊 <span className="font-bold">OPEN DATA</span> — This information is published in the public interest under the Right to Information framework.
-              </p>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <KPICard label="Total Complaints Filed" value={data?.total_tickets || 142} icon="📋" color="text-[#FF9933]" />
-              <KPICard label="Resolution Rate" value={data?.resolution_rate || 94} suffix="%" icon="✅" color="text-[#138808]" />
-              <KPICard label="Avg Resolution Time" value={data?.avg_resolution_hours || 12} suffix="h" icon="⏱️" color="text-[#FF9933]" />
-              <KPICard label="SLA Compliance Rate" value={data?.sla_compliance_pct || 97} suffix="%" icon="🛡️" color="text-[#FF9933]" />
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Category Donut with Legend */}
-              <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
-                <h3 className="text-sm font-semibold text-white mb-1">Category Breakdown</h3>
-                <p className="text-xs text-[#8A9BB5] mb-4">Distribution of complaints by category</p>
-                <div className="flex flex-col lg:flex-row items-center gap-6">
-                  <div className="h-64 w-64 flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={85}
-                          dataKey="value"
-                          stroke="none"
-                          label={({ name, percent }) => percent > 0.05 ? `${Math.round(percent * 100)}%` : ''}
-                          labelLine={false}
-                        >
-                          {categoryData.map((_, i) => (
-                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {categoryData.map((cat, i) => {
-                      const pct = Math.round((cat.value / totalCat) * 100);
-                      return (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                          <span className="text-white/80 capitalize flex-1">{cat.name}</span>
-                          <span className="text-[#8A9BB5]">{cat.value} ({pct}%)</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="text-base font-semibold text-slate-900">Category Breakdown</h2>
+              <div className="mt-4 flex flex-col items-center gap-6 md:flex-row md:items-start">
+                <div className="relative h-44 w-44 rounded-full border border-slate-200" style={{ background: `conic-gradient(${donutGradient})` }}>
+                  <div className="absolute inset-8 rounded-full bg-white" />
                 </div>
-              </div>
-
-              {/* Monthly Trend */}
-              <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
-                <h3 className="text-sm font-semibold text-white mb-1">Monthly Complaint Trend</h3>
-                <p className="text-xs text-[#8A9BB5] mb-4">Complaints filed vs resolved over 6 months</p>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
-                      <YAxis tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend wrapperStyle={{ fontSize: 11, color: '#8A9BB5' }} />
-                      <Line type="monotone" dataKey="complaints" stroke="#CC0000" strokeWidth={2} dot={{ r: 3, fill: '#CC0000' }} name="Filed" />
-                      <Line type="monotone" dataKey="resolved" stroke="#138808" strokeWidth={2} dot={{ r: 3, fill: '#138808' }} name="Resolved" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Ward Table + Top Performing Wards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Ward Performance Table */}
-              <div className="rounded-xl border border-white/10 bg-[#112240] p-6 overflow-x-auto">
-                <h3 className="text-sm font-semibold text-white mb-1">Ward Performance</h3>
-                <p className="text-xs text-[#8A9BB5] mb-4">Resolution metrics by municipal ward</p>
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10 text-xs uppercase text-[#8A9BB5] tracking-widest">
-                      <th className="pb-3 pr-4 sticky left-0 bg-[#112240]">Ward</th>
-                      <th className="pb-3 pr-4">Open</th>
-                      <th className="pb-3 pr-4">Resolved</th>
-                      <th className="pb-3 pr-4">SLA Breached</th>
-                      <th className="pb-3">Pending &gt;48hrs</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {wardStats.map((w, i) => (
-                      <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 pr-4 font-medium text-white sticky left-0 bg-[#112240]">{w.ward}</td>
-                        <td className="py-3 pr-4">
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-[#4A90D9]/15 text-[#4A90D9]">{w.open}</span>
-                        </td>
-                        <td className="py-3 pr-4">
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-[#138808]/15 text-[#22AA22]">{w.resolved}</span>
-                        </td>
-                        <td className="py-3 pr-4">
-                          <span className={`px-2 py-0.5 rounded-full text-xs ${
-                            w.sla_breached > 0 ? 'bg-[#CC0000]/15 text-[#FF4444]' : 'bg-[#138808]/15 text-[#22AA22]'
-                          }`}>
-                            {w.sla_breached}
-                          </span>
-                        </td>
-                        <td className="py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-xs ${
-                            w.sla_breached > 0 ? 'bg-[#CC0000]/15 text-[#FF4444]' : 'text-[#8A9BB5]/40'
-                          }`}>
-                            {w.sla_breached > 0 ? w.sla_breached : '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Top Performing Wards Bar Chart */}
-              <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
-                <h3 className="text-sm font-semibold text-white mb-1">Top Performing Wards</h3>
-                <p className="text-xs text-[#8A9BB5] mb-4">Resolution rate % per ward</p>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={wardBarData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" horizontal={false} />
-                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                      <YAxis type="category" dataKey="ward" tick={{ fontSize: 11, fill: '#8A9BB580' }} axisLine={false} width={100} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="rate" name="Resolution %" radius={[0, 6, 6, 0]}>
-                        {wardBarData.map((entry, i) => (
-                          <Cell key={i} fill={i === 0 ? '#138808' : '#FF9933'} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Activity Feed + CTA */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Live Activity Feed */}
-              <div className="rounded-xl border border-white/10 bg-[#112240] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Live Activity Feed</h3>
-                    <p className="text-xs text-[#8A9BB5]">Last 5 resolved complaints</p>
-                  </div>
-                  <span className="flex items-center gap-1.5 text-xs text-[#138808]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#138808] animate-pulse" />
-                    Live
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {recentResolved.map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-                      <span className="text-lg">✅</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate capitalize">
-                          {item.category} fixed — {item.ward_name}
-                        </p>
-                        <p className="text-xs text-[#8A9BB5]/60">{item.ref}</p>
+                <div className="w-full space-y-2">
+                  {categoryData.map((item, index) => (
+                    <div key={item.name} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />
+                        <span className="text-sm text-slate-700">{item.name}</span>
                       </div>
-                      <span className="text-xs text-[#8A9BB5]/50 flex-shrink-0">{timeAgo(item.closed_at)}</span>
+                      <span className="text-sm font-medium text-slate-900">{item.value}</span>
                     </div>
                   ))}
-                  {recentResolved.length === 0 && (
-                    <p className="text-sm text-[#8A9BB5]/40 text-center py-6">No recent resolutions</p>
-                  )}
                 </div>
               </div>
+            </div>
 
-              {/* Register a Complaint CTA */}
-              <div className="rounded-xl border border-[#FF9933]/20 bg-[#FF9933]/5 p-6 flex flex-col items-center justify-center text-center">
-                <h3 className="text-xl font-bold text-white mb-1">📋 Register a Grievance</h3>
-                <p className="text-[#8A9BB5] text-sm mb-6">Toll-Free | Hindi & English | No Internet Required</p>
-                <a
-                  href="tel:+15706308042"
-                  className="inline-flex items-center gap-3 px-8 py-3 rounded-lg bg-[#FF9933] text-[#0A1628] font-bold text-base hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20 mb-6"
-                  aria-label="Call toll-free grievance helpline"
-                >
-                  📞 Toll-Free: +1 570 630 8042
-                </a>
-                <p className="text-xs text-[#8A9BB5]/60">Available 24×7 | Hindi & English | No Internet Required</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="text-base font-semibold text-slate-900">Ward Activity Heatmap</h2>
+              <p className="mt-1 text-sm text-slate-500">Open complaint volumes by ward</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {wardHeatmap.map((ward) => (
+                  <div key={ward.ward} className={`rounded-lg px-3 py-2 text-center text-xs font-semibold text-white ${getHeatColor(ward.open)}`}>
+                    <p>{ward.ward}</p>
+                    <p className="mt-1 text-[11px] opacity-90">{ward.open}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+
+          <div className="space-y-6">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="text-lg">🔍</span>
+                <h2 className="text-base font-semibold text-slate-900">Public Complaint Tracker</h2>
+              </div>
+              <p className="mb-4 text-sm text-slate-500">Enter your reference number to check status</p>
+              <input
+                value={trackRef}
+                onChange={(event) => setTrackRef(event.target.value)}
+                placeholder="JS-XXXXXX"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#0A2540]"
+              />
+              <button
+                type="button"
+                onClick={searchStatus}
+                disabled={trackLoading}
+                className="mt-3 w-full rounded-lg bg-[#0A2540] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#11345A] disabled:opacity-60"
+              >
+                {trackLoading ? 'Searching...' : 'Search Status'}
+              </button>
+              {trackError ? <p className="mt-3 text-xs text-rose-600">{trackError}</p> : null}
+              {trackResult ? (
+                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  <p><span className="font-semibold text-slate-800">Ref:</span> {trackResult.ref}</p>
+                  <p className="mt-1"><span className="font-semibold text-slate-800">Status:</span> {trackResult.status}</p>
+                  <p className="mt-1"><span className="font-semibold text-slate-800">Category:</span> {trackResult.category}</p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-xl border border-slate-700 bg-[#1B2130] p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-white">📋 Register a Grievance</h2>
+              <p className="mt-2 text-sm text-slate-400">Toll-Free | Hindi & English | No Internet Required</p>
+              <a
+                href="tel:+15706308042"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#F97316] py-3 font-bold text-white hover:bg-[#EA580C]"
+              >
+                📞 Toll-Free: +1 570 630 8042
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {loading ? (
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+            Refreshing civic data...
+          </div>
+        ) : null}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-[#FF9933]/10 bg-[#071020] py-6 px-6 text-center">
-        <p className="text-xs text-[#8A9BB5]">© 2026 JanSamvaad ResolveOS | Ministry of Housing & Urban Affairs | Government of India</p>
-        <p className="text-xs text-[#8A9BB5]/50 mt-1">Powered by National Informatics Centre (NIC)</p>
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between md:px-6">
+          <p className="text-slate-600">JanSamvaad - Government of India</p>
+          <div className="flex items-center gap-4">
+            <a href="/" className="hover:text-slate-900">Home</a>
+            <a href="/dashboard" className="hover:text-slate-900">Official Login</a>
+          </div>
+        </div>
       </footer>
     </div>
   );
