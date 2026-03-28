@@ -7,7 +7,7 @@ export default function Solution() {
       <div className="max-w-5xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <span className="px-4 py-1.5 rounded-full bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] text-xs font-semibold uppercase tracking-widest">The Solution</span>
-          <h1 className="text-4xl md:text-5xl font-bold text-[white] mt-6">JanSamvaad ResolveOS</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-[white] mt-6">JanSamvaad</h1>
           <p className="text-lg text-[#8A9BB5]/60 mt-4 max-w-2xl mx-auto">India's first voice-first AI civic grievance platform. One phone call. Every language. Full transparency.</p>
         </div>
 

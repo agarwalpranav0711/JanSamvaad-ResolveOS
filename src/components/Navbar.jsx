@@ -48,7 +48,7 @@ export default function Navbar({ transparent = false }) {
               <span className="text-xl">🇮🇳</span>
               <div className="flex flex-col">
                 <span className="text-base font-bold text-white tracking-tight leading-tight">
-                  JanSamvaad <span className="font-normal text-[#E8EDF2]">ResolveOS</span>
+                  JanSamvaad
                 </span>
                 <span className="text-[10px] text-[#FF9933] font-medium leading-tight hidden sm:block">
                   Ministry of Housing & Urban Affairs

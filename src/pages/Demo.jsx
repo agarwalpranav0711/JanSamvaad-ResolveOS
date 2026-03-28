@@ -27,7 +27,7 @@ export default function Demo() {
         <div className="text-center mb-16">
           <span className="px-4 py-1.5 rounded-full bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] text-xs font-semibold uppercase tracking-widest">Live Demo</span>
           <h1 className="text-4xl md:text-5xl font-bold text-[white] mt-6">Try It Right Now</h1>
-          <p className="text-lg text-[#8A9BB5]/60 mt-4 max-w-2xl mx-auto">Experience JanSamvaad ResolveOS live. Call the number, speak your complaint, and watch it appear on the dashboard in real time.</p>
+          <p className="text-lg text-[#8A9BB5]/60 mt-4 max-w-2xl mx-auto">Experience JanSamvaad live. Call the number, speak your complaint, and watch it appear on the dashboard in real time.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
