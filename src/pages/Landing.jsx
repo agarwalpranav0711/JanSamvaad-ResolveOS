@@ -48,7 +48,7 @@ function GovFooter() {
           <div className="text-center md:text-left">
             <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
               <span className="text-xl">🇮🇳</span>
-              <span className="text-base font-bold text-white">JanSamvaad ResolveOS</span>
+              <span className="text-base font-bold text-white">JanSamvaad</span>
             </div>
             <p className="text-xs text-[#FF9933]">Ministry of Housing & Urban Affairs | Government of India</p>
           </div>
@@ -63,7 +63,7 @@ function GovFooter() {
         </div>
         <div className="border-t border-white/5 pt-6 text-center">
           <p className="text-xs text-[#8A9BB5]">
-            © 2026 JanSamvaad ResolveOS | Government of India
+            © 2026 JanSamvaad | Government of India
           </p>
           <p className="text-xs text-[#8A9BB5]/60 mt-1">
             Powered by National Informatics Centre (NIC) | Best viewed in Chrome, Firefox, Edge | Screen Reader Compatible

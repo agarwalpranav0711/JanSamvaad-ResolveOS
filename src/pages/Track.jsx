@@ -343,7 +343,7 @@ export default function Track() {
 
       {/* Footer */}
       <footer className="border-t border-[#FF9933]/10 bg-[#071020] py-6 px-6 text-center">
-        <p className="text-xs text-[#8A9BB5]">© 2026 JanSamvaad ResolveOS | Government of India</p>
+        <p className="text-xs text-[#8A9BB5]">© 2026 JanSamvaad | Government of India</p>
         <p className="text-xs text-[#8A9BB5]/50 mt-1">Powered by National Informatics Centre (NIC)</p>
       </footer>
     </div>

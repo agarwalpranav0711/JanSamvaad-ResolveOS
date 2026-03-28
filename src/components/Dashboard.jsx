@@ -1042,12 +1042,12 @@ export default function Dashboard() {
         throw new Error('Assistant request failed');
       }
       const payload = await response.json();
-      const assistantText = String(payload?.response || '').trim() || 'ResolveOS Assistant is temporarily unavailable. Please try again in a moment.';
+      const assistantText = String(payload?.response || '').trim() || 'JanSamvaad Assistant is temporarily unavailable. Please try again in a moment.';
       setChatHistory((previous) => [...previous, { role: 'assistant', text: assistantText }]);
     } catch (err) {
       setChatHistory((previous) => [
         ...previous,
-        { role: 'assistant', text: 'ResolveOS Assistant is temporarily unavailable. Please try again.' }
+        { role: 'assistant', text: 'JanSamvaad Assistant is temporarily unavailable. Please try again.' }
       ]);
     } finally {
       setChatLoading(false);
@@ -1512,7 +1512,7 @@ export default function Dashboard() {
           <div className="text-center mb-6">
             <span className="text-3xl">🇮🇳</span>
             <p className="text-xs text-[#FF9933] mt-2 font-medium">Government of India</p>
-            <h2 className="text-xl font-bold text-white mt-1">JanSamvaad <span className="text-[#E8EDF2] font-normal">ResolveOS</span></h2>
+            <h2 className="text-xl font-bold text-white mt-1">JanSamvaad</h2>
           </div>
           <form
             onSubmit={handleLoginSubmit}
@@ -1725,7 +1725,7 @@ export default function Dashboard() {
             <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#FF9933]/10 text-lg">🇮🇳</div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF9933]">Municipal Operations Portal</p>
-              <h1 className="text-lg font-bold text-white">JanSamvaad ResolveOS</h1>
+              <h1 className="text-lg font-bold text-white">JanSamvaad</h1>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1739,7 +1739,7 @@ export default function Dashboard() {
               onClick={() => setIsAssistantOpen(true)}
               className="bg-teal-500/15 text-teal-300 hover:bg-teal-500/25 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
             >
-              ✨ ResolveOS Assistant
+              ✨ JanSamvaad Assistant
             </button>
             <button type="button" onClick={handleLogout} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/[0.06] transition-all">Logout</button>
           </div>
@@ -1754,7 +1754,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-teal-500/15 text-teal-300">✨</span>
-            <h2 className="text-sm font-semibold text-white">ResolveOS Assistant</h2>
+            <h2 className="text-sm font-semibold text-white">JanSamvaad Assistant</h2>
           </div>
           <button
             type="button"
@@ -1780,7 +1780,7 @@ export default function Dashboard() {
           <hr className="border-white/10" />
 
           <section className="h-1/2 min-h-0 flex flex-col">
-            <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">ASK RESOLVEOS</p>
+            <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">ASK JANSAMVAAD</p>
             <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {chatHistory.length === 0 ? (
                 <div className="rounded-lg border border-white/10 bg-[#2A3140] p-3 text-xs text-slate-300">
@@ -1813,7 +1813,7 @@ export default function Dashboard() {
                   onChange={(event) => setChatInput(event.target.value)}
                   onKeyDown={handleChatKeyDown}
                   rows={1}
-                  placeholder="Ask ResolveOS Assistant..."
+                  placeholder="Ask JanSamvaad Assistant..."
                   className="w-full resize-none rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-teal-400/70 transition-all focus:min-h-[72px]"
                 />
                 <button

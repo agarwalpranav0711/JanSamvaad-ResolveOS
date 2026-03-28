@@ -29,7 +29,7 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
           {!collapsed && (
             <div className="min-w-0">
               <span className="text-sm font-bold text-white truncate whitespace-nowrap block">
-                JanSamvaad <span className="text-[#E8EDF2] font-normal">ResolveOS</span>
+                JanSamvaad
               </span>
               <span className="text-[9px] text-[#FF9933] block truncate">Municipal Operations Portal</span>
             </div>
