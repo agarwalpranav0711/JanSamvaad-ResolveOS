@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { IndiaFlag } from '@/components/india-flag'
 import BrandLogo from '@/components/BrandLogo'
 import { toast } from 'sonner'
 import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Phone, Shield, User } from 'lucide-react'
@@ -77,14 +76,6 @@ export default function LoginPage() {
         <div className="relative z-10 px-14 pb-20">
           <div className="mb-14">
             <BrandLogo size="lg" showText={true} textColor="text-white" />
-            <div className="flex items-center gap-4">
-              <IndiaFlag size="lg" />
-              <div>
-                <p className="text-xs tracking-[0.2em] uppercase text-white/70">Government of India</p>
-                <h2 className="text-2xl font-semibold mt-1">JanSamvaad</h2>
-                <p className="text-sm text-white/75">Ministry of Housing & Urban Affairs</p>
-              </div>
-            </div>
           </div>
           <p className="max-w-md text-2xl font-semibold leading-relaxed text-white">
             Empowering Municipal Operations for a Digital India
