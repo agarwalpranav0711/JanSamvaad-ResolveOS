@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { IndiaFlag } from '@/components/india-flag'
+import BrandLogo from '@/components/BrandLogo'
 import { toast } from 'sonner'
 import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Phone, Shield, User } from 'lucide-react'
 
@@ -75,7 +76,7 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10 px-14 pb-20">
           <div className="mb-14">
-            <img src="/logo-icon.png" alt="JanSamvaad logo" className="h-12 w-auto mb-4" />
+            <BrandLogo size="lg" showText={true} textColor="text-white" />
             <div className="flex items-center gap-4">
               <IndiaFlag size="lg" />
               <div>
@@ -102,7 +103,7 @@ export default function LoginPage() {
           <div className="max-w-md w-full">
             <div className="mb-6">
               <div className="inline-flex items-center gap-3">
-                <img src="/logo-icon.png" alt="JanSamvaad logo" className="h-10 w-auto" />
+                <BrandLogo size="sm" showText={true} textColor="text-gray-900" />
                 <div>
                   <h1 className="text-2xl font-bold text-slate-900">Operator Login</h1>
                   <p className="text-sm text-slate-500">Municipal Operations Access Portal</p>

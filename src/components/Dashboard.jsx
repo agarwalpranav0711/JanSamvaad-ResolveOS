@@ -9,6 +9,7 @@ import OfficerPerformance from './pages/OfficerPerformance';
 import Reports from './pages/Reports';
 import QRScanner from './pages/QRScanner';
 import SettingsPage from './pages/Settings';
+import BrandLogo from './BrandLogo';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -1516,9 +1517,10 @@ export default function Dashboard() {
         <div className="relative z-10 w-full max-w-sm">
           {/* Branding */}
           <div className="text-center mb-6">
-            <span className="text-3xl">🇮🇳</span>
+            <div className="flex justify-center">
+              <BrandLogo size="sm" showText={true} textColor="text-white" />
+            </div>
             <p className="text-xs text-[#FF9933] mt-2 font-medium">Government of India</p>
-            <h2 className="text-xl font-bold text-white mt-1">JanSamvaad</h2>
           </div>
           <form
             onSubmit={handleLoginSubmit}

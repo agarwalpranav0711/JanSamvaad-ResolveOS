@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import BrandLogo from '../components/BrandLogo';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
@@ -47,8 +48,7 @@ function GovFooter() {
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 mb-8">
           <div className="text-center md:text-left">
             <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-              <span className="text-xl">🇮🇳</span>
-              <span className="text-base font-bold text-white">JanSamvaad</span>
+              <BrandLogo size="md" showText={true} />
             </div>
             <p className="text-xs text-[#FF9933]">Ministry of Housing & Urban Affairs | Government of India</p>
           </div>

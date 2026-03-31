@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import BrandLogo from '@/components/BrandLogo';
 
 const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api').replace(/\/$/, '');
 
@@ -122,8 +123,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A1628] px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo-icon.png" alt="JanSamvaad logo" className="h-8 w-auto" />
-            <span className="text-white font-bold text-lg">JanSamvaad</span>
+            <BrandLogo size="md" showText={true} textColor="text-white" />
           </Link>
           <button
             type="button"

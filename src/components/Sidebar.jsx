@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import BrandLogo from './BrandLogo';
 
 const NAV_ITEMS = [
   { key: 'overview', icon: '🏠', label: 'Overview' },
@@ -25,15 +26,7 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
       >
         {/* Logo */}
         <div className="flex items-center gap-2 px-4 h-14 border-b border-white/5 flex-shrink-0">
-          <span className="text-xl flex-shrink-0">🇮🇳</span>
-          {!collapsed && (
-            <div className="min-w-0">
-              <span className="text-sm font-bold text-white truncate whitespace-nowrap block">
-                JanSamvaad
-              </span>
-              <span className="text-[9px] text-[#FF9933] block truncate">Municipal Operations Portal</span>
-            </div>
-          )}
+          <BrandLogo size="md" showText={!collapsed} textColor="text-white" />
         </div>
 
         {/* Toggle button */}
@@ -107,8 +100,7 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🇮🇳</span>
-              <span className="text-sm font-bold text-white">JanSamvaad</span>
+              <BrandLogo size="md" showText={true} textColor="text-white" />
             </div>
             <button
               type="button"
