@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://jan-samvaad.a.run.app').replace(/\/$/, '')
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://jansamvaad-backend-608936922611.us-central1.run.app').replace(/\/$/, '')
 const API = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`
 const CATEGORY_COLORS = ['#F97316', '#16A34A', '#0EA5E9', '#EF4444', '#F59E0B']
 type CategoryItem = { name: string; value: number }
