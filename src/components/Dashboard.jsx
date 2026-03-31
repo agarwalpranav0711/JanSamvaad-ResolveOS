@@ -1740,11 +1740,7 @@ export default function Dashboard() {
             >
               ☰
             </button>
-            <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#FF9933]/10 text-lg">🇮🇳</div>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF9933]">Municipal Operations Portal</p>
-              <h1 className="text-lg font-bold text-white">JanSamvaad</h1>
-            </div>
+            <BrandLogo size="sm" showText={true} textColor="text-white" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${socketLive ? 'border-[#138808]/50 bg-[#138808]/20 text-[#22AA22]' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'}`}>
