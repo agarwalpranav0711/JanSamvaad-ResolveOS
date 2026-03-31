@@ -521,95 +521,92 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {/* AI Assistant Panel */}
           {selectedTicket ? (
-            <Card className="border-2 border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10">
-                    <Brain className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm">AI Assistant</CardTitle>
-                    <CardDescription className="text-xs">
-                      Analysis for {selectedTicket.ref}
-                    </CardDescription>
-                  </div>
-                  <Sparkles className="h-4 w-4 text-saffron ml-auto" />
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 flex flex-col gap-4">
+              {/* Header */}
+              <div className="flex items-center gap-2 pb-3 border-b border-white/10">
+                <div className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.16"/>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.16"/>
+                  </svg>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  {aiLoading ? (
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
-                      Analyzing with Gemini AI...
-                    </div>
-                  ) : (
-                    <p className="text-sm">{selectedTicket.aiAnalysis || 'Select a ticket to generate analysis.'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Suggested Actions
-                  </p>
-                  {aiLoading ? (
-                    <div className="space-y-2">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="h-8 bg-muted rounded animate-pulse"/>
-                      ))}
-                    </div>
-                  ) : (
-                    <ul className="space-y-2">
-                      {selectedTicket.suggestedActions?.map((action, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <ChevronRight className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                          <span>{action}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <span className="text-sm font-semibold text-white">Gemini Analysis</span>
+                <span className="ml-auto text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">
+                  {selectedTicket.ref}
+                </span>
+              </div>
 
-                <div className="pt-2 border-t">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <MapPin className="h-3 w-3" />
-                    <span>{selectedTicket.location.address}</span>
+              {/* Analysis text */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 font-medium">AI Assessment</p>
+                {aiLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-white/10 rounded animate-pulse w-full"/>
+                    <div className="h-3 bg-white/10 rounded animate-pulse w-4/5"/>
+                    <div className="h-3 bg-white/10 rounded animate-pulse w-3/5"/>
                   </div>
-                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative overflow-hidden min-w-[260px]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-green-india/20" />
-                    <div className="relative text-center p-4">
-                      <MapPin className="h-8 w-8 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-mono">
-                        {selectedTicket.location.lat.toFixed(4)}° N, {selectedTicket.location.lng.toFixed(4)}° E
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-gray-300 leading-relaxed">{selectedTicket.aiAnalysis}</p>
+                )}
+              </div>
 
-                <div className="flex gap-2">
-                  <Button 
-                    className="flex-1 bg-primary hover:bg-primary/90"
-                    onClick={() => handleResolve(selectedTicket)}
-                  >
-                    Resolve Ticket
-                  </Button>
-                  <Button variant="outline" size="icon" asChild>
-                    <Link href={`/dashboard/tickets/${selectedTicket.id}`}>
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Suggested actions */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-3 font-medium">Suggested Actions</p>
+                {aiLoading ? (
+                  <div className="space-y-2">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="h-12 bg-white/10 rounded-xl animate-pulse"/>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(selectedTicket.suggestedActions || []).map((action, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all cursor-default">
+                        <div className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
+                          {i + 1}
+                        </div>
+                        <p className="text-sm text-gray-300 leading-snug">{action}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Powered by badge */}
+              <div className="pt-2 border-t border-white/10 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>
+                <span className="text-xs text-gray-500">Powered by Gemini 2.5 Flash</span>
+              </div>
+            </div>
           ) : (
-            <Card className="border-dashed">
-              <CardContent className="p-8 text-center">
-                <Brain className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  Select a ticket to view AI analysis and suggested actions
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 h-full flex flex-col items-center justify-center text-center gap-4">
+              {/* Animated pulse ring around brain icon */}
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping"/>
+                <div className="relative w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
+                  {/* Brain SVG inline */}
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="1.5">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.16"/>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.16"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <p className="text-white font-medium text-sm">Gemini AI Analysis</p>
+                <p className="text-gray-400 text-xs mt-1 max-w-[180px] leading-relaxed">
+                  Select any ticket to get instant AI-powered insights and resolution steps
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-2 justify-center mt-2">
+                {['Root Cause', 'Priority Score', 'Action Steps'].map(tag => (
+                  <span key={tag} className="text-xs px-2 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Category Breakdown */}
