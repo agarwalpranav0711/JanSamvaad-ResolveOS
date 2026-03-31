@@ -86,8 +86,11 @@ export default function DashboardPage() {
       const data = await res.json()
       setSelectedTicket(prev => prev ? {
         ...prev,
-        aiAnalysis: data.summaryText || data.summary || data.aiAnalysis || prev.aiAnalysis,
-        suggestedActions: (data.suggestedActions || []).map((a: any) => typeof a === 'string' ? a : `${a.title} — ${a.subtitle}`),
+        aiAnalysis: data.summary || prev.aiAnalysis,
+        suggestedActions: data.suggestedActions || prev.suggestedActions,
+        aiPriority: data.priority,
+        aiEta: data.estimatedResolutionTime,
+        aiEscalate: data.escalationNeeded,
       } : prev)
     } catch (err) {
       console.error('[AI analysis]', err)
@@ -549,6 +552,39 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-300 leading-relaxed">{selectedTicket.aiAnalysis}</p>
                 )}
               </div>
+
+              {/* Priority + ETA row */}
+              {(selectedTicket.aiPriority || selectedTicket.aiEta) && (
+                <div className="flex gap-3">
+                  {selectedTicket.aiPriority && (
+                    <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-3">
+                      <p className="text-xs text-gray-400 mb-1">AI Priority</p>
+                      <p className={`text-sm font-semibold ${
+                        selectedTicket.aiPriority === 'High' ? 'text-red-400' :
+                        selectedTicket.aiPriority === 'Medium' ? 'text-orange-400' :
+                        'text-green-400'
+                      }`}>{selectedTicket.aiPriority}</p>
+                    </div>
+                  )}
+                  {selectedTicket.aiEta && (
+                    <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-3">
+                      <p className="text-xs text-gray-400 mb-1">Est. Resolution</p>
+                      <p className="text-sm font-semibold text-blue-400">{selectedTicket.aiEta}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Escalation warning */}
+              {selectedTicket.aiEscalate && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span className="text-xs text-red-400 font-medium">Escalation recommended</span>
+                </div>
+              )}
 
               {/* Suggested actions */}
               <div>

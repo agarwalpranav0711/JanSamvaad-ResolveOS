@@ -3,7 +3,9 @@ const pool = require('../db');
 const authenticateToken = require('../middleware/authenticateToken');
 const logger = require('../utils/logger');
 const { generateResolutionSummary, askJanSamvaadAssistant } = require('../services/llm');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const router = express.Router();
 
 function maskPhone(phone) {
@@ -122,7 +124,7 @@ router.get('/api/tickets/:ref/analyze', authenticateToken, async (req, res) => {
     const { rows } = await pool.query(
       `SELECT
          t.id, t.ref, t.category, t.severity, t.status,
-         t.created_at, t.closed_at, t.ward_id,
+         t.created_at, t.closed_at, t.ward_id, t.description,
          COALESCE(w.name, 'Ward ' || t.ward_id) AS ward_name
        FROM tickets t
        LEFT JOIN wards w ON w.id = t.ward_id
@@ -133,8 +135,50 @@ router.get('/api/tickets/:ref/analyze', authenticateToken, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
-    const result = await generateResolutionSummary(rows);
-    res.json(result);
+    const ticket = rows[0];
+
+    const model = genAI.getGenerativeModel({ 
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash' 
+    });
+
+    const prompt = `You are a municipal operations assistant for JanSamvaad, 
+New Delhi's civic grievance system. Analyze this ticket and respond in 
+JSON only — no markdown, no explanation outside the JSON.
+
+Ticket Details:
+- Reference: ${ticket.ref}
+- Category: ${ticket.category}
+- Ward: ${ticket.ward_id ? 'Ward ' + ticket.ward_id : 'Unknown Ward'}
+- Status: ${ticket.status}
+- Severity: ${ticket.severity || 'Not specified'}
+- Reported: ${new Date(ticket.created_at).toLocaleString('en-IN')}
+- Description: ${ticket.description || 'Voice complaint — citizen described issue verbally'}
+
+Respond with exactly this JSON structure:
+{
+  "summary": "2-3 sentence assessment of the issue, its likely cause, and urgency level. Be specific to the category and ward context.",
+  "priority": "High | Medium | Low",
+  "suggestedActions": [
+    "Specific action step 1 — include who should do it and when",
+    "Specific action step 2 — include concrete next step",
+    "Specific action step 3 — include follow-up or verification step"
+  ],
+  "estimatedResolutionTime": "e.g. 2-4 hours, 1-2 days",
+  "escalationNeeded": true or false
+}`;
+
+    const result = await model.generateContent(prompt);
+    const raw = result.response.text();
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    return res.json({
+      summary: parsed.summary,
+      suggestedActions: parsed.suggestedActions,
+      priority: parsed.priority,
+      estimatedResolutionTime: parsed.estimatedResolutionTime,
+      escalationNeeded: parsed.escalationNeeded,
+    });
   } catch (error) {
     (req.log || logger).error({ err: error }, 'Failed to generate per-ticket AI analysis');
     res.status(500).json({ error: 'Internal server error' });

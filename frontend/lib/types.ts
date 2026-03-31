@@ -23,6 +23,9 @@ export interface Ticket {
   description: string
   aiAnalysis?: string
   suggestedActions?: string[]
+  aiPriority?: string
+  aiEta?: string
+  aiEscalate?: boolean
   location: {
     lat: number
     lng: number
