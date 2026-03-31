@@ -168,9 +168,9 @@ export default function DashboardLayout({
         </SidebarFooter>
       </Sidebar>
       
-      <SidebarInset>
+      <SidebarInset className="bg-[#0a0f1e] text-white">
         {/* Top Bar */}
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-white/10 bg-[#0a0f1e]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0a0f1e]/90 px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
           
@@ -204,7 +204,7 @@ export default function DashboardLayout({
         </header>
         
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 bg-[#0a0f1e] p-4 text-white sm:p-6">
           {children}
         </main>
       </SidebarInset>

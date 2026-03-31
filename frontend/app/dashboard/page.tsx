@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { StatCard } from '@/components/stat-card'
 import { SeverityBadge, StatusBadge } from '@/components/severity-badge'
 import { SLACountdown } from '@/components/sla-countdown'
 import { WardHeatmap } from '@/components/ward-heatmap'
@@ -292,44 +291,65 @@ export default function DashboardPage() {
   }, [activities, activityFilter, activitySort])
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6 bg-[#0a0f1e] text-white">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of all civic grievances and resolutions</p>
+          <p className="text-gray-400">Overview of all civic grievances and resolutions</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Tickets"
-          value={stats.totalToday}
-          delta={stats.deltaTotal}
-          icon={<FileText className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Open"
-          value={stats.openToday}
-          delta={stats.deltaOpen}
-          variant="warning"
-          icon={<FolderOpen className="h-5 w-5" />}
-        />
-        <StatCard
-          title="SLA Breached"
-          value={stats.slaBreachedToday}
-          delta={stats.deltaSla}
-          variant="danger"
-          icon={<AlertTriangle className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Resolved Today"
-          value={stats.resolvedToday}
-          delta={stats.deltaResolved}
-          variant="success"
-          icon={<CheckCircle2 className="h-5 w-5" />}
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-400">Total Tickets</p>
+              <p className="text-2xl font-bold font-mono tracking-tight text-white sm:text-3xl">{stats.totalToday}</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <FileText className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-sm text-gray-400">Δ {stats.deltaTotal} vs yesterday</div>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-400">Open</p>
+              <p className="text-2xl font-bold font-mono tracking-tight text-white sm:text-3xl">{stats.openToday}</p>
+            </div>
+            <div className="rounded-lg bg-warning/20 p-2 text-warning">
+              <FolderOpen className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-sm text-gray-400">Δ {stats.deltaOpen} vs yesterday</div>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-400">SLA Breached</p>
+              <p className="text-2xl font-bold font-mono tracking-tight text-white sm:text-3xl">{stats.slaBreachedToday}</p>
+            </div>
+            <div className="rounded-lg bg-destructive/20 p-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-sm text-gray-400">Δ {stats.deltaSla} vs yesterday</div>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-400">Resolved Today</p>
+              <p className="text-2xl font-bold font-mono tracking-tight text-white sm:text-3xl">{stats.resolvedToday}</p>
+            </div>
+            <div className="rounded-lg bg-green-india/20 p-2 text-green-india">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-sm text-gray-400">Δ {stats.deltaResolved} vs yesterday</div>
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -337,24 +357,24 @@ export default function DashboardPage() {
         {/* Ticket Table - 2 columns */}
         <div className="lg:col-span-2 space-y-4">
           {/* Filters */}
-          <Card>
+          <Card className="rounded-2xl border border-white/10 bg-white/5">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     placeholder="Search by ref or category..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="border-white/10 bg-white/5 pl-9 text-white placeholder:text-gray-500"
                   />
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-[130px]">
+                    <SelectTrigger className="w-full border-white/10 bg-white/5 text-white sm:w-[130px]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border-white/10 bg-[#0f1a2e] text-gray-100">
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="Open">Open</SelectItem>
                       <SelectItem value="In-Progress">In-Progress</SelectItem>
@@ -363,10 +383,10 @@ export default function DashboardPage() {
                     </SelectContent>
                   </Select>
                   <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                    <SelectTrigger className="w-full sm:w-[130px]">
+                    <SelectTrigger className="w-full border-white/10 bg-white/5 text-white sm:w-[130px]">
                       <SelectValue placeholder="Severity" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border-white/10 bg-[#0f1a2e] text-gray-100">
                       <SelectItem value="all">All Severity</SelectItem>
                       <SelectItem value="CRITICAL">Critical</SelectItem>
                       <SelectItem value="HIGH">High</SelectItem>
@@ -375,10 +395,10 @@ export default function DashboardPage() {
                     </SelectContent>
                   </Select>
                   <Select value={wardFilter} onValueChange={setWardFilter}>
-                    <SelectTrigger className="w-full sm:w-[120px]">
+                    <SelectTrigger className="w-full border-white/10 bg-white/5 text-white sm:w-[120px]">
                       <SelectValue placeholder="Ward" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border-white/10 bg-[#0f1a2e] text-gray-100">
                       <SelectItem value="all">All Wards</SelectItem>
                       {Array.from({ length: 20 }, (_, i) => (
                         <SelectItem key={i + 1} value={`Ward ${i + 1}`}>
@@ -393,11 +413,11 @@ export default function DashboardPage() {
           </Card>
 
           {/* Tickets Table */}
-          <Card>
+          <Card className="rounded-2xl border border-white/10 bg-white/5">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Active Tickets</CardTitle>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-400">
                   Showing {filteredTickets.length} of {tickets.length}
                 </span>
               </div>
@@ -405,22 +425,22 @@ export default function DashboardPage() {
             <CardContent className="p-0">
               <div className="md:hidden space-y-3 p-4">
                 {loading ? (
-                  <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading tickets...</div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-gray-400">Loading tickets...</div>
                 ) : filteredTickets.map((ticket) => (
                   <div
                     key={ticket.id}
                     onClick={() => { setSelectedTicket(ticket); fetchAiAnalysis(ticket.ref || ticket.id); }}
                     className={cn(
-                      "rounded-lg border p-4 space-y-2 cursor-pointer",
-                      selectedTicket?.id === ticket.id && "bg-muted"
+                      "cursor-pointer space-y-2 rounded-lg border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10",
+                      selectedTicket?.id === ticket.id && "bg-white/10"
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono font-semibold text-primary text-sm">{ticket.ref}</span>
                       <SeverityBadge severity={ticket.severity} />
                     </div>
-                    <div className="text-sm font-medium">{ticket.category}</div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="text-sm font-medium text-white">{ticket.category}</div>
+                    <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>{ticket.ward}</span>
                       <StatusBadge status={ticket.status} />
                     </div>
@@ -429,7 +449,7 @@ export default function DashboardPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="w-full h-10"
+                        className="h-10 w-full border-white/20 bg-white/5 text-white hover:bg-white/10"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleResolve(ticket)
@@ -443,22 +463,22 @@ export default function DashboardPage() {
               </div>
               <ScrollArea className="hidden md:block h-[500px]">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableHeader className="sticky top-0 z-10 bg-white/5">
                     <TableRow>
-                      <TableHead className="w-[100px]">REF</TableHead>
-                      <TableHead>CATEGORY</TableHead>
-                      <TableHead>WARD</TableHead>
-                      <TableHead>SEVERITY</TableHead>
-                      <TableHead>STATUS</TableHead>
-                      <TableHead>SLA</TableHead>
-                      <TableHead>PHONE</TableHead>
-                      <TableHead className="text-right">ACTION</TableHead>
+                      <TableHead className="w-[100px] text-gray-400">REF</TableHead>
+                      <TableHead className="text-gray-400">CATEGORY</TableHead>
+                      <TableHead className="text-gray-400">WARD</TableHead>
+                      <TableHead className="text-gray-400">SEVERITY</TableHead>
+                      <TableHead className="text-gray-400">STATUS</TableHead>
+                      <TableHead className="text-gray-400">SLA</TableHead>
+                      <TableHead className="text-gray-400">PHONE</TableHead>
+                      <TableHead className="text-right text-gray-400">ACTION</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={8} className="py-8 text-center text-gray-400">
                           Loading tickets...
                         </TableCell>
                       </TableRow>
@@ -466,18 +486,18 @@ export default function DashboardPage() {
                       <TableRow 
                         key={ticket.id}
                         className={cn(
-                          "cursor-pointer hover:bg-muted/50 transition-colors",
-                          selectedTicket?.id === ticket.id && "bg-muted"
+                          "cursor-pointer transition-colors hover:bg-white/10",
+                          selectedTicket?.id === ticket.id && "bg-white/10"
                         )}
                         onClick={() => { setSelectedTicket(ticket); fetchAiAnalysis(ticket.ref || ticket.id); }}
                       >
                         <TableCell className="font-mono font-semibold text-primary">
                           {ticket.ref}
                         </TableCell>
-                        <TableCell className="max-w-[150px] truncate">
+                        <TableCell className="max-w-[150px] truncate text-white">
                           {ticket.category}
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
+                        <TableCell className="font-mono text-sm text-gray-300">
                           {ticket.ward}
                         </TableCell>
                         <TableCell>
@@ -493,7 +513,7 @@ export default function DashboardPage() {
                             showBar={true}
                           />
                         </TableCell>
-                        <TableCell className="font-mono text-sm text-muted-foreground">
+                        <TableCell className="font-mono text-sm text-gray-300">
                           {ticket.maskedPhone}
                         </TableCell>
                         <TableCell className="text-right">
@@ -501,7 +521,7 @@ export default function DashboardPage() {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              className="h-7 px-2 text-xs"
+                              className="h-7 border-white/20 bg-white/5 px-2 text-xs text-white hover:bg-white/10"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleResolve(ticket)
@@ -521,10 +541,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column - AI Panel & Analytics */}
-        <div className="space-y-4">
+        <div className="space-y-4 bg-transparent">
           {/* AI Assistant Panel */}
           {selectedTicket ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 flex flex-col gap-4">
+            <div className="rounded-2xl border border-white/10 bg-[#0f1a2e] p-5 flex flex-col gap-4">
               {/* Header */}
               <div className="flex items-center gap-2 pb-3 border-b border-white/10">
                 <div className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center">
@@ -549,7 +569,7 @@ export default function DashboardPage() {
                     <div className="h-3 bg-white/10 rounded animate-pulse w-3/5"/>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-300 leading-relaxed">{selectedTicket.aiAnalysis}</p>
+                  <p className="text-sm text-gray-200 leading-relaxed">{selectedTicket.aiAnalysis}</p>
                 )}
               </div>
 
@@ -588,7 +608,7 @@ export default function DashboardPage() {
 
               {/* Suggested actions */}
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-3 font-medium">Suggested Actions</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 font-medium">Suggested Actions</p>
                 {aiLoading ? (
                   <div className="space-y-2">
                     {[1,2,3].map(i => (
@@ -602,7 +622,7 @@ export default function DashboardPage() {
                         <div className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
                           {i + 1}
                         </div>
-                        <p className="text-sm text-gray-300 leading-snug">{action}</p>
+                        <p className="text-sm text-gray-200 leading-snug">{action}</p>
                       </div>
                     ))}
                   </div>
@@ -612,7 +632,7 @@ export default function DashboardPage() {
               {/* Powered by badge */}
               <div className="pt-2 border-t border-white/10 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>
-                <span className="text-xs text-gray-500">Powered by Gemini 2.5 Flash</span>
+                <span className="text-xs text-gray-400">Powered by Gemini 2.5 Flash</span>
               </div>
             </div>
           ) : (
@@ -646,11 +666,11 @@ export default function DashboardPage() {
           )}
 
           {/* Category Breakdown */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Category Breakdown</CardTitle>
+          <Card className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <CardHeader className="p-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-white">Category Breakdown</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -669,10 +689,11 @@ export default function DashboardPage() {
                     </Pie>
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
+                        backgroundColor: '#0f1a2e',
+                        border: '1px solid rgba(255,255,255,0.1)',
                         borderRadius: '8px',
-                        fontSize: '12px'
+                        fontSize: '12px',
+                        color: '#9ca3af'
                       }}
                     />
                   </PieChart>
@@ -685,7 +706,7 @@ export default function DashboardPage() {
                       className="w-2 h-2 rounded-full" 
                       style={{ backgroundColor: CATEGORY_COLORS[i] }}
                     />
-                    <span className="truncate text-muted-foreground">{item.name}</span>
+                    <span className="truncate text-gray-300">{item.name}</span>
                   </div>
                 ))}
               </div>
@@ -693,11 +714,11 @@ export default function DashboardPage() {
           </Card>
 
           {/* Resolution Rate */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Resolution Rate</CardTitle>
+          <Card className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <CardHeader className="p-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-white">Resolution Rate</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="flex items-center justify-center py-4">
                 <div className="relative">
                   <svg className="w-24 h-24 transform -rotate-90">
@@ -722,11 +743,11 @@ export default function DashboardPage() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold font-mono">{stats.resolutionRate}%</span>
+                    <span className="text-2xl font-bold font-mono text-white">{stats.resolutionRate}%</span>
                   </div>
                 </div>
               </div>
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-sm text-gray-400">
                 {stats.resolvedToday} resolved out of {stats.totalToday} tickets today
               </p>
             </CardContent>
