@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import BrandLogo from './BrandLogo';
 
 const NAV_ITEMS = [
   { key: 'overview', icon: '🏠', label: 'Overview' },
@@ -12,7 +13,7 @@ const NAV_ITEMS = [
   { key: 'settings', icon: '⚙️', label: 'Settings' },
 ];
 
-const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onToggleCollapse, operatorName }) {
+const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onToggleCollapse, operatorName, mobileOpen, onMobileClose }) {
   const initials = (operatorName || 'OP').slice(0, 2).toUpperCase();
 
   return (
@@ -25,15 +26,7 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
       >
         {/* Logo */}
         <div className="flex items-center gap-2 px-4 h-14 border-b border-white/5 flex-shrink-0">
-          <span className="text-xl flex-shrink-0">🇮🇳</span>
-          {!collapsed && (
-            <div className="min-w-0">
-              <span className="text-sm font-bold text-white truncate whitespace-nowrap block">
-                JanSamvaad
-              </span>
-              <span className="text-[9px] text-[#FF9933] block truncate">Municipal Operations Portal</span>
-            </div>
-          )}
+          <BrandLogo size="md" showText={!collapsed} textColor="text-white" />
         </div>
 
         {/* Toggle button */}
@@ -95,34 +88,50 @@ const Sidebar = memo(function Sidebar({ activePage, onNavigate, collapsed, onTog
         </div>
       </aside>
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0A1628] border-t border-white/10 flex items-center justify-around px-1 py-1 safe-area-bottom">
-        {[
-          { key: 'overview', icon: '🏠', label: 'Home' },
-          { key: 'gis', icon: '🗺️', label: 'Map' },
-          { key: 'ledger', icon: '📋', label: 'Tickets' },
-          { key: 'analytics', icon: '📊', label: 'Stats' },
-          { key: 'more', icon: '⚙️', label: 'More' },
-        ].map((tab) => {
-          const active = tab.key === 'more'
-            ? !['overview', 'gis', 'ledger', 'analytics'].includes(activePage)
-            : activePage === tab.key;
-          return (
+      <div className={`md:hidden fixed inset-0 z-50 ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={onMobileClose}
+        />
+        <aside
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#0A1628] border-r border-white/10 p-4 transition-transform duration-300 ${
+            mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BrandLogo size="md" showText={true} textColor="text-white" />
+            </div>
             <button
-              key={tab.key}
               type="button"
-              onClick={() => onNavigate(tab.key === 'more' ? 'settings' : tab.key)}
-              aria-label={tab.label}
-              className={`flex flex-col items-center justify-center py-2 px-3 min-w-[56px] min-h-[44px] rounded-lg transition-all duration-200 ${
-                active ? 'text-[#FF9933]' : 'text-[#8A9BB5]/40'
-              }`}
+              onClick={onMobileClose}
+              className="h-10 w-10 rounded-lg border border-white/20 text-white"
+              aria-label="Close sidebar"
             >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-[10px] mt-0.5">{tab.label}</span>
+              ✕
             </button>
-          );
-        })}
-      </nav>
+          </div>
+          <nav className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const active = activePage === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => onNavigate(item.key)}
+                  aria-label={item.label}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                    active ? 'bg-[#FF9933]/10 text-[#FF9933]' : 'text-[#8A9BB5]/80 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+      </div>
     </>
   );
 });

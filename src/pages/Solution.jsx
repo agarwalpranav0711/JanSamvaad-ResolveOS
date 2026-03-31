@@ -4,15 +4,15 @@ export default function Solution() {
   return (
     <div className="min-h-screen" style={{ background: '#0A1628', fontFamily: "'Inter', sans-serif" }}>
       <Navbar />
-      <div className="max-w-5xl mx-auto px-6 py-20">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
         <div className="text-center mb-16">
           <span className="px-4 py-1.5 rounded-full bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] text-xs font-semibold uppercase tracking-widest">The Solution</span>
-          <h1 className="text-4xl md:text-5xl font-bold text-[white] mt-6">JanSamvaad</h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[white] mt-6">JanSamvaad</h1>
           <p className="text-lg text-[#8A9BB5]/60 mt-4 max-w-2xl mx-auto">India's first voice-first AI civic grievance platform. One phone call. Every language. Full transparency.</p>
         </div>
 
         {/* Architecture Flow */}
-        <div className="rounded-3xl border border-white/10 bg-[#112240] p-8 mb-12">
+        <div className="rounded-3xl border border-white/10 bg-[#112240] p-4 sm:p-8 mb-12">
           <h3 className="text-lg font-bold text-[white] mb-8 text-center">System Architecture</h3>
           <div className="flex flex-col items-center">
             {[
@@ -24,7 +24,7 @@ export default function Solution() {
               { label: 'Resolution & Proof', sub: 'QR code + SMS notification', color: '#FF9933', icon: '✅' },
             ].map((step, i) => (
               <div key={step.label} className="w-full max-w-md">
-                <div className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
+                <div className="flex items-center gap-4 px-4 sm:px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: `${step.color}15`, border: `1px solid ${step.color}30` }}>
                     {step.icon}
                   </div>
@@ -65,7 +65,7 @@ export default function Solution() {
         {/* Tech Stack */}
         <div className="rounded-3xl border border-white/10 bg-[#112240] p-8 mb-12">
           <h3 className="text-lg font-bold text-[white] mb-6 text-center">Technology Stack</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { layer: 'Frontend', tech: 'React 18 + Vite', color: '#3b82f6' },
               { layer: 'Styling', tech: 'Tailwind CSS', color: '#06b6d4' },
@@ -86,7 +86,7 @@ export default function Solution() {
         </div>
 
         {/* ROI */}
-        <div className="rounded-3xl border border-[#FF9933]/20 bg-[#FF9933]/5 p-8">
+        <div className="rounded-3xl border border-[#FF9933]/20 bg-[#FF9933]/5 p-4 sm:p-8">
           <h3 className="text-lg font-bold text-[white] mb-6 text-center">Return on Investment</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[

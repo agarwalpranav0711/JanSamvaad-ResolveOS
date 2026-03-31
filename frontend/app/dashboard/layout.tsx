@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { IndiaFlag } from '@/components/india-flag'
+import BrandLogo from '@/components/BrandLogo'
 import { LiveIndicator } from '@/components/live-indicator'
 import { 
   LayoutDashboard, 
@@ -96,10 +96,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border p-4">
           <div className="flex items-center gap-3">
-            <IndiaFlag size="md" />
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-sidebar-foreground">JanSamvaad</span>
-            </div>
+            <BrandLogo size="md" showText={true} textColor="text-white" />
           </div>
         </SidebarHeader>
         

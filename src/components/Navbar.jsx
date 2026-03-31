@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 
 export default function Navbar({ transparent = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -45,15 +46,7 @@ export default function Navbar({ transparent = false }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="text-xl">🇮🇳</span>
-              <div className="flex flex-col">
-                <span className="text-base font-bold text-white tracking-tight leading-tight">
-                  JanSamvaad
-                </span>
-                <span className="text-[10px] text-[#FF9933] font-medium leading-tight hidden sm:block">
-                  Ministry of Housing & Urban Affairs
-                </span>
-              </div>
+              <BrandLogo size="md" showText={true} textColor="text-white" />
             </Link>
 
             {/* Desktop nav */}

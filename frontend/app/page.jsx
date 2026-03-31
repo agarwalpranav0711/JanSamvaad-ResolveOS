@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import BrandLogo from '@/components/BrandLogo';
 
 const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api').replace(/\/$/, '');
 
@@ -95,6 +96,7 @@ function TickerStrip() {
 
 export default function LandingPage() {
   const [stats, setStats] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'JanSamvaad — नागरिक शिकायत निवारण | Citizen Grievance Redressal';
@@ -118,33 +120,53 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0A1628] text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A1628] px-8 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A1628] px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo-icon.png" alt="JanSamvaad logo" className="h-8 w-auto" />
-            <span className="text-white font-bold text-lg">JanSamvaad</span>
+            <BrandLogo size="md" showText={true} textColor="text-white" />
           </Link>
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="sm:hidden h-10 w-10 rounded-lg border border-white/20 text-white"
+            aria-label="Toggle navigation menu"
+          >
+            ☰
+          </button>
+          <div className="hidden sm:flex items-center gap-3">
             <Link
               href="/track"
-              className="px-4 py-2 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
+              className="px-4 py-2 h-10 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
             >
               🔍 Track Your Complaint
             </Link>
             <Link
               href="/public"
-              className="px-4 py-2 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
+              className="px-4 py-2 h-10 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
             >
               📊 Public Data
             </Link>
             <Link
               href="/login"
-              className="px-4 py-2 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
+              className="px-4 py-2 h-10 rounded-lg border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition-all"
             >
               👤 Operator Login
             </Link>
           </div>
         </div>
+        {menuOpen && (
+          <div className="sm:hidden mt-3 space-y-2">
+            <Link href="/track" onClick={() => setMenuOpen(false)} className="block w-full px-4 py-3 rounded-lg border border-white/20 text-white text-sm">
+              🔍 Track Your Complaint
+            </Link>
+            <Link href="/public" onClick={() => setMenuOpen(false)} className="block w-full px-4 py-3 rounded-lg border border-white/20 text-white text-sm">
+              📊 Public Data
+            </Link>
+            <Link href="/login" onClick={() => setMenuOpen(false)} className="block w-full px-4 py-3 rounded-lg border border-white/20 text-white text-sm">
+              👤 Operator Login
+            </Link>
+          </div>
+        )}
       </nav>
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0" style={{
@@ -165,7 +187,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <a
               href="tel:+15706308042"
-              className="px-8 py-3.5 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20"
+              className="w-full sm:w-auto px-8 py-3.5 min-h-10 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20"
               aria-label="Register grievance by calling toll-free number"
             >
               📞 Register Grievance — Call Now
@@ -180,7 +202,7 @@ export default function LandingPage() {
       <TickerStrip />
 
       <section className="py-12 px-6 bg-[#071020] border-y border-[#FF9933]/10">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div ref={total.ref} className="text-center">
             <p className="text-3xl sm:text-4xl font-bold text-[#FF9933]">{total.val.toLocaleString()}+</p>
             <p className="text-xs text-[#8A9BB5] mt-1 uppercase tracking-widest">Grievances Registered</p>
@@ -247,7 +269,7 @@ export default function LandingPage() {
           </p>
           <a
             href="tel:+15706308042"
-            className="inline-flex items-center gap-3 px-10 py-4 rounded-lg bg-[#FF9933] text-[#0A1628] font-bold text-lg hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20 mb-6"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-6 sm:px-10 py-4 min-h-10 rounded-lg bg-[#FF9933] text-[#0A1628] font-bold text-base sm:text-lg hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20 mb-6"
             aria-label="Call toll-free grievance helpline"
           >
             📞 Toll-Free Grievance Helpline: +1 570 630 8042

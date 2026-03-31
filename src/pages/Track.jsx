@@ -169,19 +169,19 @@ export default function Track() {
           <label className="block text-xs text-[#8A9BB5] mb-2 font-medium">
             Grievance Reference Number / शिकायत संदर्भ संख्या
           </label>
-          <form onSubmit={handleSearch} className="flex gap-3">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               value={ref}
               onChange={(e) => setRef(e.target.value)}
               placeholder="e.g. JS-G7H8I9"
-              className="flex-1 px-4 py-3 rounded-lg bg-[#112240] border border-white/10 text-sm text-white placeholder:text-[#8A9BB5]/50 outline-none focus:border-[#FF9933]/50 transition-all"
+              className="w-full flex-1 px-4 py-3 min-h-10 rounded-lg bg-[#112240] border border-white/10 text-sm text-white placeholder:text-[#8A9BB5]/50 outline-none focus:border-[#FF9933]/50 transition-all"
               aria-label="Grievance reference number"
             />
             <button
               type="submit"
               disabled={loading || !ref.trim()}
-              className="px-6 py-3 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] disabled:opacity-40 transition-all active:scale-95"
+              className="w-full sm:w-auto px-6 py-3 min-h-10 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] disabled:opacity-40 transition-all active:scale-95"
               aria-label="Search for grievance"
             >
               {loading ? '...' : 'Search / खोजें'}

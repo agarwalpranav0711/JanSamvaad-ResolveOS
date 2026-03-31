@@ -276,7 +276,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Tickets"
           value={stats.totalToday}
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[130px]">
+                    <SelectTrigger className="w-full sm:w-[130px]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                     </SelectContent>
                   </Select>
                   <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                    <SelectTrigger className="w-[130px]">
+                    <SelectTrigger className="w-full sm:w-[130px]">
                       <SelectValue placeholder="Severity" />
                     </SelectTrigger>
                     <SelectContent>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                     </SelectContent>
                   </Select>
                   <Select value={wardFilter} onValueChange={setWardFilter}>
-                    <SelectTrigger className="w-[120px]">
+                    <SelectTrigger className="w-full sm:w-[120px]">
                       <SelectValue placeholder="Ward" />
                     </SelectTrigger>
                     <SelectContent>
@@ -377,7 +377,45 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[500px]">
+              <div className="md:hidden space-y-3 p-4">
+                {loading ? (
+                  <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading tickets...</div>
+                ) : filteredTickets.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className={cn(
+                      "rounded-lg border p-4 space-y-2 cursor-pointer",
+                      selectedTicket?.id === ticket.id && "bg-muted"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-semibold text-primary text-sm">{ticket.ref}</span>
+                      <SeverityBadge severity={ticket.severity} />
+                    </div>
+                    <div className="text-sm font-medium">{ticket.category}</div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{ticket.ward}</span>
+                      <StatusBadge status={ticket.status} />
+                    </div>
+                    <SLACountdown deadline={ticket.slaDeadline} createdAt={ticket.createdAt} showBar={true} />
+                    {ticket.status !== 'Resolved' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full h-10"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleResolve(ticket)
+                        }}
+                      >
+                        Resolve
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <ScrollArea className="hidden md:block h-[500px]">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
@@ -499,7 +537,7 @@ export default function DashboardPage() {
                     <MapPin className="h-3 w-3" />
                     <span>{selectedTicket.location.address}</span>
                   </div>
-                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative overflow-hidden">
+                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative overflow-hidden min-w-[260px]">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-green-india/20" />
                     <div className="relative text-center p-4">
                       <MapPin className="h-8 w-8 text-primary mx-auto mb-2" />

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import BrandLogo from '../components/BrandLogo';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
@@ -47,8 +48,7 @@ function GovFooter() {
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 mb-8">
           <div className="text-center md:text-left">
             <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-              <span className="text-xl">🇮🇳</span>
-              <span className="text-base font-bold text-white">JanSamvaad</span>
+              <BrandLogo size="md" showText={true} />
             </div>
             <p className="text-xs text-[#FF9933]">Ministry of Housing & Urban Affairs | Government of India</p>
           </div>
@@ -149,14 +149,14 @@ export default function Landing() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <a
               href="tel:+15706308042"
-              className="px-8 py-3.5 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20"
+              className="w-full sm:w-auto px-8 py-3.5 min-h-10 rounded-lg bg-[#FF9933] text-[#0A1628] font-semibold text-sm hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20"
               aria-label="Register grievance by calling toll-free number"
             >
               📞 Register Grievance — Call Now
             </a>
             <Link
               to="/track"
-              className="px-8 py-3.5 rounded-lg border border-white/20 text-white font-semibold text-sm hover:bg-white/5 transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 min-h-10 rounded-lg border border-white/20 text-white font-semibold text-sm hover:bg-white/5 transition-all"
             >
               🔍 Track Your Complaint
             </Link>
@@ -172,7 +172,7 @@ export default function Landing() {
 
       {/* ─── STATISTICS BAR ─── */}
       <section className="py-12 px-6 bg-[#071020] border-y border-[#FF9933]/10">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div ref={total.ref} className="text-center">
             <p className="text-3xl sm:text-4xl font-bold text-[#FF9933]">{total.val.toLocaleString()}+</p>
             <p className="text-xs text-[#8A9BB5] mt-1 uppercase tracking-widest">Grievances Registered</p>
@@ -242,7 +242,7 @@ export default function Landing() {
           </p>
           <a
             href="tel:+15706308042"
-            className="inline-flex items-center gap-3 px-10 py-4 rounded-lg bg-[#FF9933] text-[#0A1628] font-bold text-lg hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20 mb-6"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-6 sm:px-10 py-4 min-h-10 rounded-lg bg-[#FF9933] text-[#0A1628] font-bold text-base sm:text-lg hover:bg-[#E6841C] transition-all active:scale-95 shadow-lg shadow-[#FF9933]/20 mb-6"
             aria-label="Call toll-free grievance helpline"
           >
             📞 Toll-Free Grievance Helpline: +1 570 630 8042

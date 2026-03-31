@@ -9,6 +9,7 @@ import OfficerPerformance from './pages/OfficerPerformance';
 import Reports from './pages/Reports';
 import QRScanner from './pages/QRScanner';
 import SettingsPage from './pages/Settings';
+import BrandLogo from './BrandLogo';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -820,6 +821,7 @@ export default function Dashboard() {
   const [expandedRows, setExpandedRows] = useState({});
   const [activePage, setActivePage] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState(DEFAULT_AI_SUMMARY);
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiSummaryError, setAiSummaryError] = useState('');
@@ -885,6 +887,11 @@ export default function Dashboard() {
 
   const dismissToast = useCallback((toastId) => {
     setToasts((prev) => prev.filter((item) => item.id !== toastId));
+  }, []);
+
+  const handleNavigate = useCallback((page) => {
+    setActivePage(page);
+    setMobileSidebarOpen(false);
   }, []);
 
   const handleUnauthorized = useCallback(() => {
@@ -1510,9 +1517,10 @@ export default function Dashboard() {
         <div className="relative z-10 w-full max-w-sm">
           {/* Branding */}
           <div className="text-center mb-6">
-            <span className="text-3xl">🇮🇳</span>
+            <div className="flex justify-center">
+              <BrandLogo size="sm" showText={true} textColor="text-white" />
+            </div>
             <p className="text-xs text-[#FF9933] mt-2 font-medium">Government of India</p>
-            <h2 className="text-xl font-bold text-white mt-1">JanSamvaad</h2>
           </div>
           <form
             onSubmit={handleLoginSubmit}
@@ -1710,10 +1718,12 @@ export default function Dashboard() {
 
       <Sidebar
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={handleNavigate}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(c => !c)}
         operatorName={operatorName}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       <ToastStack toasts={toasts} onToastDismiss={dismissToast} />
@@ -1722,11 +1732,15 @@ export default function Dashboard() {
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[220px]'} pb-20 md:pb-0`}>
         <header className="flex flex-col gap-3 border-b border-white/5 bg-[#112240]/80 backdrop-blur-sm p-4 md:flex-row md:items-center md:justify-between sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <div className="hidden md:grid h-9 w-9 place-items-center rounded-lg bg-[#FF9933]/10 text-lg">🇮🇳</div>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF9933]">Municipal Operations Portal</p>
-              <h1 className="text-lg font-bold text-white">JanSamvaad</h1>
-            </div>
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden h-10 w-10 rounded-lg border border-white/20 text-white"
+              aria-label="Open sidebar"
+            >
+              ☰
+            </button>
+            <BrandLogo size="sm" showText={true} textColor="text-white" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${socketLive ? 'border-[#138808]/50 bg-[#138808]/20 text-[#22AA22]' : 'border-rose-500/50 bg-rose-500/20 text-rose-200'}`}>
@@ -1750,7 +1764,7 @@ export default function Dashboard() {
         </main>
       </div>
 
-      <aside className={`fixed inset-y-0 right-0 z-50 w-96 flex flex-col bg-[#1E222D] border-l border-white/10 shadow-2xl transform transition-transform duration-300 ease-in-out ${isAssistantOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 right-0 z-50 w-full sm:w-96 flex flex-col bg-[#1E222D] border-l border-white/10 shadow-2xl transform transition-transform duration-300 ease-in-out ${isAssistantOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-teal-500/15 text-teal-300">✨</span>
